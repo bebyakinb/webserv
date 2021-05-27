@@ -1,5 +1,4 @@
 #define BUFFER_SIZE 65536
-#define PORT_NUM 7654
 #define SOCK_CREATE_ERR 1
 #define BIND_ERR 2
 #define SELECT_ERR 3
@@ -32,6 +31,10 @@ void exitError(int err_num){
 		std::cerr << "SELECT ERROR" << std::endl;
 	} else if (err_num == ACCEPT_ERR){
 		std::cerr << "ACCEPT ERROR" << std::endl;
+	} else if (err_num == FCNTL_ERR){
+		std::cerr << "FCNTL ERROR" << std::endl;
+	} else if (err_num == READ_ERR){
+		std::cerr << "READ ERROR" << std::endl;
 	}
 	exit(1);
 }
@@ -92,6 +95,7 @@ std::string readFromSocket(int fd){
 	readen = 1;
 	while(readen){
 		if ((readen = read(fd, buf, BUFFER_SIZE)) == -1){
+			std::cout << std::strerror(errno) << '\n';
 			exitError(READ_ERR);
 		}
 		std::cout << buf << std::endl;
@@ -100,26 +104,57 @@ std::string readFromSocket(int fd){
 	return result;
 }
 
+void	createListenSockets(std::vector<int> &listenSocketFds, std::vector<int> &portNums){
+	for (std::vector<int>::const_iterator it = portNums.begin() ; it != portNums.end(); ++it){
+			listenSocketFds.push_back(craeteSocket(*it));
+		}
+}
+
+void	setFdsAndListen(fd_set *readFds, fd_set *writeFds, int *maxFd, std::vector<int> &listenSocketFds){
+	FD_ZERO(readFds);
+	FD_ZERO(writeFds);
+	for (std::vector<int>::const_iterator it = listenSocketFds.begin() ; it != listenSocketFds.end(); ++it){
+		*it > *maxFd? *maxFd = *it : 1;
+		FD_SET(*it, readFds);
+		listen(*it, 16);
+	}
+}
+
+void	acceptingConections(fd_set *readFds, std::vector<int> &listenSocketFds, std::vector<s_socket> &clientSockets){
+	s_socket				tempSocket;
+
+	for (std::vector<int>::const_iterator it = listenSocketFds.begin() ; it != listenSocketFds.end(); ++it){
+		if (FD_ISSET(*it, readFds)){
+			tempSocket.fd = acceptConection(*it);
+			std::cout << "here1" << std::endl;
+			nonBlockMode(tempSocket.fd);
+			clientSockets.push_back(tempSocket);
+			clearSocket(tempSocket);
+			std::cout << "here2" << std::endl;
+		}
+	}
+}
+
 int main(void){
 	struct timeval			timeout;
 	int						select_res;
 	//int						newScoketFd;
-	int						listenSocketFd;
+	std::vector<int>		listenSocketFds;
+	std::vector<int>		portNums;
 	int						maxFd;
 	std::vector<s_socket>	clientSockets;
-	s_socket				tempSocket;
+
 	fd_set					readFds, writeFds;
 	//char						buf[BUFFER_SIZE];
 
-	listenSocketFd = craeteSocket(PORT_NUM);
-
+	maxFd = 0;
+	portNums.push_back(7664);//
+	portNums.push_back(7665);//
+	portNums.push_back(7666);//
+	createListenSockets(listenSocketFds, portNums);
 	while (1){
-		maxFd = listenSocketFd;
-		FD_ZERO(&readFds);
-		FD_ZERO(&writeFds);
-		FD_SET(listenSocketFd, &readFds);
-
-		listen(listenSocketFd, 16);
+		std::cout << "here3.1" << std::endl;
+		setFdsAndListen(&readFds, &writeFds, &maxFd, listenSocketFds);
 		for (std::vector<s_socket>::const_iterator it = clientSockets.begin() ; it != clientSockets.end(); ++it){
 			FD_SET(it->fd, &readFds);
 			std::cout << it->fd << " added to read" << std::endl;
@@ -145,14 +180,7 @@ int main(void){
 		} else if (select_res == 0) {
 			continue;//time out
 		}
-		if (FD_ISSET(listenSocketFd, &readFds)){
-			tempSocket.fd = acceptConection(listenSocketFd);
-			std::cout << "here1" << std::endl;
-			nonBlockMode(tempSocket.fd);
-			clientSockets.push_back(tempSocket);
-			clearSocket(tempSocket);
-			std::cout << "here2" << std::endl;
-		}
+		acceptingConections(&readFds, listenSocketFds, clientSockets);
 		for (std::vector<s_socket>::const_iterator it = clientSockets.begin() ; it != clientSockets.end(); ++it){
 			std::cout << it->fd << " searched in fdlist" << std::endl;
 			if (FD_ISSET(it->fd, &readFds)){
@@ -163,6 +191,7 @@ int main(void){
 				;
 			}
 		}
+		std::cout << "here3.2" << std::endl;
 	}
 	return (0);
 }
