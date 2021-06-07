@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 typedef struct t_socket{
 	int					fd;
@@ -36,7 +37,7 @@ void exitError(int err_num){
 	} else if (err_num == READ_ERR){
 		std::cerr << "READ ERROR" << std::endl;
 	}
-	exit(1);
+	_exit(1);
 }
 
 int craeteSocket(int port){
@@ -72,7 +73,7 @@ int acceptConection(int listenSocketFd){
 	return (socketFd);
 }
 
-void nonBlockMode(int socketFd){
+void	nonBlockMode(int socketFd){
 	int flags;
 
 	if ((flags = fcntl(socketFd, F_GETFL)) == -1)
@@ -87,21 +88,17 @@ void	clearSocket(s_socket socket){
 	socket.writeBuf.clear();
 }
 
-std::string readFromSocket(int fd){
+int		readFromSocket(int fd){
 	int			readen;
 	char		buf[BUFFER_SIZE];
-	std::string	result;
-	
-	readen = 1;
-	while(readen){
-		if ((readen = read(fd, buf, BUFFER_SIZE)) == -1){
-			std::cout << std::strerror(errno) << '\n';
-			exitError(READ_ERR);
-		}
-		std::cout << buf << std::endl;
+
+	if ((readen = read(fd, buf, BUFFER_SIZE)) == -1){
+		std::cout << std::strerror(errno) << '\n';
+		exitError(READ_ERR);
 	}
+	std::cout << buf << std::endl;
 	//std::cout << result << std::endl;
-	return result;
+	return readen;
 }
 
 void	createListenSockets(std::vector<int> &listenSocketFds, std::vector<int> &portNums){
@@ -110,9 +107,12 @@ void	createListenSockets(std::vector<int> &listenSocketFds, std::vector<int> &po
 		}
 }
 
-void	setFdsAndListen(fd_set *readFds, fd_set *writeFds, int *maxFd, std::vector<int> &listenSocketFds){
+void	resetFdSets(fd_set *readFds, fd_set *writeFds){
 	FD_ZERO(readFds);
 	FD_ZERO(writeFds);
+}
+
+void	setListenSockets(fd_set *readFds, int *maxFd, std::vector<int> &listenSocketFds){
 	for (std::vector<int>::const_iterator it = listenSocketFds.begin() ; it != listenSocketFds.end(); ++it){
 		*it > *maxFd? *maxFd = *it : 1;
 		FD_SET(*it, readFds);
@@ -120,6 +120,18 @@ void	setFdsAndListen(fd_set *readFds, fd_set *writeFds, int *maxFd, std::vector<
 	}
 }
 
+void	setClientSockets(fd_set *readFds, fd_set *writeFds, int *maxFd, std::vector<s_socket> &clientSockets){
+	for (std::vector<s_socket>::const_iterator it = clientSockets.begin() ; it != clientSockets.end(); ++it){
+		FD_SET(it->fd, readFds);
+		std::cout << it->fd << " added to read" << std::endl;
+		if (it->writeBuf.length() > 0){
+			FD_SET(it->fd, writeFds);
+		}
+		if (it->fd > *maxFd){
+			*maxFd = it->fd;
+		}
+	}
+}
 void	acceptingConections(fd_set *readFds, std::vector<int> &listenSocketFds, std::vector<s_socket> &clientSockets){
 	s_socket				tempSocket;
 
@@ -148,23 +160,15 @@ int main(void){
 	//char						buf[BUFFER_SIZE];
 
 	maxFd = 0;
-	portNums.push_back(7664);//
-	portNums.push_back(7665);//
-	portNums.push_back(7666);//
+	portNums.push_back(7674);//
+	portNums.push_back(7675);//
+	portNums.push_back(7676);//
 	createListenSockets(listenSocketFds, portNums);
 	while (1){
 		std::cout << "here3.1" << std::endl;
-		setFdsAndListen(&readFds, &writeFds, &maxFd, listenSocketFds);
-		for (std::vector<s_socket>::const_iterator it = clientSockets.begin() ; it != clientSockets.end(); ++it){
-			FD_SET(it->fd, &readFds);
-			std::cout << it->fd << " added to read" << std::endl;
-			if (it->writeBuf.length() > 0){
-				FD_SET(it->fd, &writeFds);
-			}
-			if (it->fd > maxFd){
-				maxFd = it->fd;
-			}
-		}
+		resetFdSets(&readFds, &writeFds);
+		setListenSockets(&readFds, &maxFd, listenSocketFds);
+		setClientSockets(&readFds, &writeFds, &maxFd, clientSockets);
 		
 		timeout.tv_sec = 5;
 		timeout.tv_usec = 30000;
@@ -185,7 +189,9 @@ int main(void){
 			std::cout << it->fd << " searched in fdlist" << std::endl;
 			if (FD_ISSET(it->fd, &readFds)){
 				std::cout << it->fd << " found in fdlist" << std::endl;
-				readFromSocket(it->fd);
+				if (!readFromSocket(it->fd)){
+					clientSockets.erase(it);
+				}
 			}
 			if (FD_ISSET(it->fd, &writeFds)){
 				;

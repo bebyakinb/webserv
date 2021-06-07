@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <style>
+			body {
+				background: #2bbea7;
+				height: 100vh;
+				overflow: hidden;
+				display: flex;
+				font-family: 'Anton', sans-serif;
+				justify-content: center;
+				align-items: center;
+				color: #fff;
+				font-size: 10rem;
+			}
+			.donuts_mask {
+				text-align: center;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				width: 500px;
+				height: 500px;
+				position: absolute;
+				transform: translate(-50%, -50%);
+				background: #2bbea7;
+			}
+			.donuts_mask::before {
+				position: absolute;
+				height: 0;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%) scale(0.99);
+				border-radius: 100%;
+				background: #2bbea7;
+			}
+			.donuts_mask:nth-child(1) {
+				z-index: 10;
+				clip-path: circle(1%);
+				animation: rotate 3000ms 60ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(1)::before {
+				width: 0%;
+				padding-top: 0%;
+			}
+			.donuts_mask:nth-child(2) {
+				z-index: 9;
+				clip-path: circle(2%);
+				animation: rotate 3000ms 717ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(2)::before {
+				width: 10%;
+				padding-top: 10%;
+			}
+			.donuts_mask:nth-child(3) {
+				z-index: 8;
+				clip-path: circle(3%);
+				animation: rotate 3000ms 452ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(3)::before {
+				width: 20%;
+				padding-top: 20%;
+			}
+			.donuts_mask:nth-child(4) {
+				z-index: 7;
+				clip-path: circle(4%);
+				animation: rotate 3000ms 538ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(4)::before {
+				width: 30%;
+				padding-top: 30%;
+			}
+			.donuts_mask:nth-child(5) {
+				z-index: 6;
+				clip-path: circle(5%);
+				animation: rotate 3000ms 212ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(5)::before {
+				width: 40%;
+				padding-top: 40%;
+			}
+			.donuts_mask:nth-child(6) {
+				z-index: 5;
+				clip-path: circle(6%);
+				animation: rotate 3000ms 758ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(6)::before {
+				width: 50%;
+				padding-top: 50%;
+			}
+			.donuts_mask:nth-child(7) {
+				z-index: 4;
+				clip-path: circle(7%);
+				animation: rotate 3000ms 77ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(7)::before {
+				width: 60%;
+				padding-top: 60%;
+			}
+			.donuts_mask:nth-child(8) {
+				z-index: 3;
+				clip-path: circle(8%);
+				animation: rotate 3000ms 97ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(8)::before {
+				width: 70%;
+				padding-top: 70%;
+			}
+			.donuts_mask:nth-child(9) {
+				z-index: 2;
+				clip-path: circle(9%);
+				animation: rotate 3000ms 26ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(9)::before {
+				width: 80%;
+				padding-top: 80%;
+			}
+			.donuts_mask:nth-child(10) {
+				z-index: 1;
+				clip-path: circle(10%);
+				animation: rotate 3000ms 152ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(10)::before {
+				width: 90%;
+				padding-top: 90%;
+			}
+			.donuts_mask:nth-child(11) {
+				z-index: 0;
+				clip-path: circle(11%);
+				animation: rotate 3000ms 458ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(11)::before {
+				width: 100%;
+				padding-top: 100%;
+			}
+			.donuts_mask:nth-child(12) {
+				z-index: -1;
+				clip-path: circle(12%);
+				animation: rotate 3000ms 221ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(12)::before {
+				width: 110%;
+				padding-top: 110%;
+			}
+			.donuts_mask:nth-child(13) {
+				z-index: -2;
+				clip-path: circle(13%);
+				animation: rotate 3000ms 582ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(13)::before {
+				width: 120%;
+				padding-top: 120%;
+			}
+			.donuts_mask:nth-child(14) {
+				z-index: -3;
+				clip-path: circle(14%);
+				animation: rotate 3000ms 299ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(14)::before {
+				width: 130%;
+				padding-top: 130%;
+			}
+			.donuts_mask:nth-child(15) {
+				z-index: -4;
+				clip-path: circle(15%);
+				animation: rotate 3000ms 656ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(15)::before {
+				width: 140%;
+				padding-top: 140%;
+			}
+			.donuts_mask:nth-child(16) {
+				z-index: -5;
+				clip-path: circle(16%);
+				animation: rotate 3000ms 877ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(16)::before {
+				width: 150%;
+				padding-top: 150%;
+			}
+			.donuts_mask:nth-child(17) {
+				z-index: -6;
+				clip-path: circle(17%);
+				animation: rotate 3000ms 582ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(17)::before {
+				width: 160%;
+				padding-top: 160%;
+			}
+			.donuts_mask:nth-child(18) {
+				z-index: -7;
+				clip-path: circle(18%);
+				animation: rotate 3000ms 133ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(18)::before {
+				width: 170%;
+				padding-top: 170%;
+			}
+			.donuts_mask:nth-child(19) {
+				z-index: -8;
+				clip-path: circle(19%);
+				animation: rotate 3000ms 424ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(19)::before {
+				width: 180%;
+				padding-top: 180%;
+			}
+			.donuts_mask:nth-child(20) {
+				z-index: -9;
+				clip-path: circle(20%);
+				animation: rotate 3000ms 893ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(20)::before {
+				width: 190%;
+				padding-top: 190%;
+			}
+			.donuts_mask:nth-child(21) {
+				z-index: -10;
+				clip-path: circle(21%);
+				animation: rotate 3000ms 412ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(21)::before {
+				width: 200%;
+				padding-top: 200%;
+			}
+			.donuts_mask:nth-child(22) {
+				z-index: -11;
+				clip-path: circle(22%);
+				animation: rotate 3000ms 325ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(22)::before {
+				width: 210%;
+				padding-top: 210%;
+			}
+			.donuts_mask:nth-child(23) {
+				z-index: -12;
+				clip-path: circle(23%);
+				animation: rotate 3000ms 854ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(23)::before {
+				width: 220%;
+				padding-top: 220%;
+			}
+			.donuts_mask:nth-child(24) {
+				z-index: -13;
+				clip-path: circle(24%);
+				animation: rotate 3000ms 329ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(24)::before {
+				width: 230%;
+				padding-top: 230%;
+			}
+			.donuts_mask:nth-child(25) {
+				z-index: -14;
+				clip-path: circle(25%);
+				animation: rotate 3000ms 20ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(25)::before {
+				width: 240%;
+				padding-top: 240%;
+			}
+			.donuts_mask:nth-child(26) {
+				z-index: -15;
+				clip-path: circle(26%);
+				animation: rotate 3000ms 658ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(26)::before {
+				width: 250%;
+				padding-top: 250%;
+			}
+			.donuts_mask:nth-child(27) {
+				z-index: -16;
+				clip-path: circle(27%);
+				animation: rotate 3000ms 59ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(27)::before {
+				width: 260%;
+				padding-top: 260%;
+			}
+			.donuts_mask:nth-child(28) {
+				z-index: -17;
+				clip-path: circle(28%);
+				animation: rotate 3000ms 869ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(28)::before {
+				width: 270%;
+				padding-top: 270%;
+			}
+			.donuts_mask:nth-child(29) {
+				z-index: -18;
+				clip-path: circle(29%);
+				animation: rotate 3000ms 762ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(29)::before {
+				width: 280%;
+				padding-top: 280%;
+			}
+			.donuts_mask:nth-child(30) {
+				z-index: -19;
+				clip-path: circle(30%);
+				animation: rotate 3000ms 640ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(30)::before {
+				width: 290%;
+				padding-top: 290%;
+			}
+			.donuts_mask:nth-child(31) {
+				z-index: -20;
+				clip-path: circle(31%);
+				animation: rotate 3000ms 178ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(31)::before {
+				width: 300%;
+				padding-top: 300%;
+			}
+			.donuts_mask:nth-child(32) {
+				z-index: -21;
+				clip-path: circle(32%);
+				animation: rotate 3000ms 669ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(32)::before {
+				width: 310%;
+				padding-top: 310%;
+			}
+			.donuts_mask:nth-child(33) {
+				z-index: -22;
+				clip-path: circle(33%);
+				animation: rotate 3000ms 191ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(33)::before {
+				width: 320%;
+				padding-top: 320%;
+			}
+			.donuts_mask:nth-child(34) {
+				z-index: -23;
+				clip-path: circle(34%);
+				animation: rotate 3000ms 849ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(34)::before {
+				width: 330%;
+				padding-top: 330%;
+			}
+			.donuts_mask:nth-child(35) {
+				z-index: -24;
+				clip-path: circle(35%);
+				animation: rotate 3000ms 580ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(35)::before {
+				width: 340%;
+				padding-top: 340%;
+			}
+			.donuts_mask:nth-child(36) {
+				z-index: -25;
+				clip-path: circle(36%);
+				animation: rotate 3000ms 891ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(36)::before {
+				width: 350%;
+				padding-top: 350%;
+			}
+			.donuts_mask:nth-child(37) {
+				z-index: -26;
+				clip-path: circle(37%);
+				animation: rotate 3000ms 59ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(37)::before {
+				width: 360%;
+				padding-top: 360%;
+			}
+			.donuts_mask:nth-child(38) {
+				z-index: -27;
+				clip-path: circle(38%);
+				animation: rotate 3000ms 656ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(38)::before {
+				width: 370%;
+				padding-top: 370%;
+			}
+			.donuts_mask:nth-child(39) {
+				z-index: -28;
+				clip-path: circle(39%);
+				animation: rotate 3000ms 970ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(39)::before {
+				width: 380%;
+				padding-top: 380%;
+			}
+			.donuts_mask:nth-child(40) {
+				z-index: -29;
+				clip-path: circle(40%);
+				animation: rotate 3000ms 165ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(40)::before {
+				width: 390%;
+				padding-top: 390%;
+			}
+			.donuts_mask:nth-child(41) {
+				z-index: -30;
+				clip-path: circle(41%);
+				animation: rotate 3000ms 674ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(41)::before {
+				width: 400%;
+				padding-top: 400%;
+			}
+			.donuts_mask:nth-child(42) {
+				z-index: -31;
+				clip-path: circle(42%);
+				animation: rotate 3000ms 536ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(42)::before {
+				width: 410%;
+				padding-top: 410%;
+			}
+			.donuts_mask:nth-child(43) {
+				z-index: -32;
+				clip-path: circle(43%);
+				animation: rotate 3000ms 765ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(43)::before {
+				width: 420%;
+				padding-top: 420%;
+			}
+			.donuts_mask:nth-child(44) {
+				z-index: -33;
+				clip-path: circle(44%);
+				animation: rotate 3000ms 582ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(44)::before {
+				width: 430%;
+				padding-top: 430%;
+			}
+			.donuts_mask:nth-child(45) {
+				z-index: -34;
+				clip-path: circle(45%);
+				animation: rotate 3000ms 948ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(45)::before {
+				width: 440%;
+				padding-top: 440%;
+			}
+			.donuts_mask:nth-child(46) {
+				z-index: -35;
+				clip-path: circle(46%);
+				animation: rotate 3000ms 188ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(46)::before {
+				width: 450%;
+				padding-top: 450%;
+			}
+			.donuts_mask:nth-child(47) {
+				z-index: -36;
+				clip-path: circle(47%);
+				animation: rotate 3000ms 639ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(47)::before {
+				width: 460%;
+				padding-top: 460%;
+			}
+			.donuts_mask:nth-child(48) {
+				z-index: -37;
+				clip-path: circle(48%);
+				animation: rotate 3000ms 54ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(48)::before {
+				width: 470%;
+				padding-top: 470%;
+			}
+			.donuts_mask:nth-child(49) {
+				z-index: -38;
+				clip-path: circle(49%);
+				animation: rotate 3000ms 735ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(49)::before {
+				width: 480%;
+				padding-top: 480%;
+			}
+			.donuts_mask:nth-child(50) {
+				z-index: -39;
+				clip-path: circle(50%);
+				animation: rotate 3000ms 921ms ease-in-out infinite;
+			}
+			.donuts_mask:nth-child(50)::before {
+				width: 490%;
+				padding-top: 490%;
+			}
+			.step1 {
+				position: absolute;
+				opacity: 1;
+				animation: opacity 3000ms linear infinite alternate;
+			}
+			.step2 {
+				position: absolute;
+				opacity: 0;
+				animation: opacity 3000ms -3000ms linear infinite alternate;
+			}
+			@keyframes rotate {
+				0% {
+					transform: rotateZ(0deg);
+				}
+				100% {
+					transform: rotateZ(360deg);
+				}
+			}
+			@keyframes opacity {
+				0% {
+					opacity: 0;
+				}
+				49% {
+					opacity: 0;
+				}
+				50% {
+					opacity: 1;
+				}
+				100% {
+					opacity: 1;
+				}
+			}
+			@keyframes rotate {
+				0% {
+					transform: translate(-50%, -50%) rotateZ(0deg);
+				}
+				50% {
+					transform: translate(-50%, -50%) rotateZ(360deg);
+				}
+				100% {
+					transform: translate(-50%, -50%) rotateZ(360deg);
+				}
+			}
+
+    </style>
+</head>
+<body>
+    <div class="donuts">
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+        <div class="donuts_mask">
+            <div class="step1">WEB</div>
+            <div class="step2">SERV</div>
+        </div>
+    </div>
+</body>
+</html>
