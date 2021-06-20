@@ -1,15 +1,15 @@
-#ifndef SERVER_ERRORS_HPP
-# define SERVER_ERRORS_HPP
+#ifndef SERVER_EXCEPTIONS_HPP
+# define SERVER_EXCEPTIONS_HPP
 # include <iostream>
 # include <errno.h>
 # include <cstring>
 
-class Errors {
+class Exceptions {
 private:
-	Errors();
-	Errors(const Errors &);
-	virtual ~Errors();
-	Errors		&operator=(const Errors &);
+	Exceptions();
+	Exceptions(const Exceptions &);
+	virtual ~Exceptions();
+	Exceptions		&operator=(const Exceptions &);
 public:
 	class SocketCreationException : public std::exception{
 	public:
@@ -52,4 +52,4 @@ public:
 };
 
 
-#endif //SERVER_ERRORS_HPP
+#endif //SERVER_EXCEPTIONS_HPP

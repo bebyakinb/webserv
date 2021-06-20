@@ -2,13 +2,13 @@
 
 Parser::Parser(char *fileName) {
 	//Тут нужно распарсить конфиг и залить всю инфу в ServerConfigs
-	(void *)fileName;
-	// <Заглушка/>
+	(void)fileName;
+	// <Заглушка>
 	ServerConfig confTmp;
-	confTmp.setPort(7558);
+	confTmp.setPort(7554);
 	_serverConfigs.push_back(confTmp);
-	confTmp.setPort(7559);
-	_serverConfigs.push_back(confTmp);
+	//confTmp.setPort(7553);
+	//_serverConfigs.push_back(confTmp);
 	// </Заглушка>
 }
 

@@ -27,10 +27,10 @@ public:
 	void						resetSockets();
 	void						resetFdSets();
 	int							serversSelect();
-	int							acceptConnections();
+	void						acceptConnections();
 	void						readFromSockets();
 	void 						writeToSockets();
-
+	void						closeFds();
 };
 
 

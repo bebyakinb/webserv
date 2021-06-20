@@ -1,6 +1,8 @@
 #include "Cluster.hpp"
 #include "Parser.hpp"
 int main(int argc, char **argv){
+	(void)argc;
+	(void)argv;
 	int selectResult;
     try {
 		Cluster cluster(Parser(argv[1]).getServerConfigs());
@@ -12,7 +14,7 @@ int main(int argc, char **argv){
 				if (errno == EINTR){
 					;//what's this1?
 				} else {
-					throw Errors::SelectException();
+					throw Exceptions::SelectException();
 				}
 				continue;//what's this2?
 			} else if (selectResult == 0) {
@@ -21,6 +23,7 @@ int main(int argc, char **argv){
 			cluster.acceptConnections();
 			cluster.readFromSockets();
 			cluster.writeToSockets();
+			//cluster.closeFds();
 		}
 
     } catch (std::exception &e){

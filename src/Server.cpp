@@ -9,6 +9,9 @@ Server::Server(const Server &other){
 }
 
 Server::~Server() {
+	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
+		delete *it;
+	}
 }
 
 Server&							Server::operator=( const Server &other){
@@ -33,10 +36,10 @@ const sockaddr_in&				Server::getSocketAddr() const {
 
 void			 				Server::createListenSocket(){
 	if ((_listenSocketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1){
-		throw Errors::SocketCreationException();
+		throw Exceptions::SocketCreationException();
 	}
 	if (bind(_listenSocketFd, (struct sockaddr*)&_socketAddr, sizeof(_socketAddr)) == -1){
-		throw Errors::BindException();
+		throw Exceptions::BindException();
 	}
 }
 
@@ -49,23 +52,31 @@ int								Server::getListenSocketFd() const {
 	return _listenSocketFd;
 }
 
-const std::vector<Connection>&	Server::getConnections() const {
+const std::vector<Connection*>&	Server::getConnections() const {
 	return _connections;
 }
 
 void 							Server::acceptConnection(){
-	_connections.push_back(Connection(_listenSocketFd));
+	_connections.push_back(new Connection(_listenSocketFd, *this));
 }
 
 void 							Server::readFromSockets(fd_set readFds){
-	for (std::vector<Connection>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
-		if (FD_ISSET(it->getSocketFd(), &readFds))
-			it->readFromSocket();
+	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
+		if (FD_ISSET((*it)->getSocketFd(), &readFds))
+			(*it)->readFromSocket();
 	}
 }
 void 							Server::writeToSockets(fd_set writeFds){
-	for (std::vector<Connection>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
-		if (FD_ISSET(it->getSocketFd(), &writeFds))
-			it->writeToSocket();
+	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
+		if (FD_ISSET((*it)->getSocketFd(), &writeFds))
+			(*it)->writeToSocket();
 	}
+}
+
+const std::string &Server::get404Path() const {
+	return _404path;
+}
+
+void Server::set404Path(const std::string & path){
+	_404path = path;
 }

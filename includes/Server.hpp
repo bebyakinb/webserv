@@ -4,13 +4,16 @@
 # include <netinet/in.h>
 # include <vector>
 # include "Connection.hpp"
-# include "Errors.hpp"
+# include "Exceptions.hpp"
+
+class Connection;
 
 class Server {
 private:
 	int 					_listenSocketFd;
 	struct sockaddr_in		_socketAddr;
-	std::vector<Connection> _connections;
+	std::vector<Connection*> _connections;
+	std::string				_404path;
 
 public:
 	Server();
@@ -20,17 +23,19 @@ public:
 
 	void 							setSockAddr(const sockaddr_in &sockAddr);
 	void 							setListenSocketFd(int fd);
-	const sockaddr_in 				&getSocketAddr() const;
+	const sockaddr_in&				getSocketAddr() const;
 	int								getListenSocketFd() const;
-	const std::vector<Connection>	&getConnections() const;
+	const std::vector<Connection*>&	getConnections() const;
+	const std::string &				get404Path() const;
+	void							set404Path(const std::string &);
 
 	void						 	createListenSocket();
 	void							resetListenSocket(fd_set &readFds) const;
 	void 							acceptConnection();
 	void 							readFromSockets(fd_set);
 	void 							writeToSockets(fd_set);
-};
 
+};
 
 
 #endif

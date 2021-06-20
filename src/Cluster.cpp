@@ -26,14 +26,14 @@ void						Cluster::resetSockets(){
 	for (std::vector<Server>::const_iterator it = _servers.begin() ; it != _servers.end(); ++it){
 		it->getListenSocketFd() > _maxFd ? _maxFd = it->getListenSocketFd() : 0;
 		it->resetListenSocket(_readFds);
-		for (std::vector<Connection>::const_iterator  itt = it->getConnections().begin() ; itt != it->getConnections().end(); ++itt){
-			if (itt->getStatus() == READ){
-				FD_SET(itt->getSocketFd(), &_readFds);
+		for (std::vector<Connection*>::const_iterator  itt = it->getConnections().begin() ; itt != it->getConnections().end(); ++itt){
+			if ((*itt)->getStatus() == READ){
+				FD_SET((*itt)->getSocketFd(), &_readFds);
 			}
-			if (itt->getStatus() == WRITE){
-				FD_SET(itt->getSocketFd(), &_writeFds);
+			if ((*itt)->getStatus() == WRITE){
+				FD_SET((*itt)->getSocketFd(), &_writeFds);
 			}
-			itt->getSocketFd() > _maxFd ? _maxFd = itt->getSocketFd() : 0;
+			(*itt)->getSocketFd() > _maxFd ? _maxFd = (*itt)->getSocketFd() : 0;
 		}
 	}
 }
@@ -49,7 +49,7 @@ int							Cluster::serversSelect(){
 	return (select(_maxFd + 1, &_readFds, &_writeFds, NULL, &_timeout));
 }
 
-int							Cluster::acceptConnections(){
+void						Cluster::acceptConnections(){
 	for (std::vector<Server>::iterator it = _servers.begin() ; it != _servers.end(); ++it){
 		if (FD_ISSET(it->getListenSocketFd(), &_readFds)){
 			it->acceptConnection();
@@ -66,5 +66,11 @@ void							Cluster::readFromSockets() {
 void							Cluster::writeToSockets() {
 	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it) {
 		it->writeToSockets(_writeFds);
+	}
+}
+
+void 							Cluster::closeFds() {
+	for (std::vector<Server>::iterator it = _servers.begin(); it != _servers.end(); ++it) {
+		it->readFromSockets(_readFds);
 	}
 }

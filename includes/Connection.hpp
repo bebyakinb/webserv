@@ -9,21 +9,28 @@
 # include <fcntl.h>
 # include <unistd.h>
 # include <fstream>
+# include <streambuf>
 # include <sstream>
-# include "Errors.hpp"
+# include "Exceptions.hpp"
+# include "Server.hpp"
+# include "Response.hpp"
+# include "RequestHandler.hpp"
 
+class Server;
+class RequestHandler;
 
 class Connection {
 private:
-	int			_status;
-	int			_socketFd;
-	sockaddr_in	_addr;
-	socklen_t	_addrlen;
-	std::string	_request;
+	int				_status;
+	int				_socketFd;
+	sockaddr_in		_addr;
+	socklen_t		_addrlen;
+	RequestHandler	*_requestHandler;
+	unsigned long	_alreadySent;
 
-	Connection();
 public:
-	Connection(int listenSocketFd);
+	Connection();
+	Connection(int listenSocketFd, Server &server);
 	Connection(const Connection &);
 	virtual ~Connection();
 	Connection		&operator=(const Connection &);
@@ -35,7 +42,6 @@ public:
 
 	void			readFromSocket();
 	void			writeToSocket();
-	int				parseRequest();
 };
 
 
