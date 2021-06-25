@@ -2,11 +2,12 @@
 # define WEBSERV_SERVER_HPP
 # include <iostream>
 # include <vector>
-# include "ServerConfig.hpp"
-# include "Server.hpp"
 # include <netinet/in.h>
 # include <sys/socket.h>
 # include "errno.h"
+# include "ServerConfig.hpp"
+# include "Server.hpp"
+# include "ParseConfig.hpp"
 
 class Cluster {
 private:
@@ -20,7 +21,7 @@ private:
 	Cluster(const Cluster &);
 	Cluster  &operator=(const Cluster &);
 public:
-	Cluster(const std::vector<ServerConfig> &serverConfigs);
+	Cluster(ParseConfig *parser);
 	virtual ~Cluster();
 
 	const std::vector<Server>	&getServers() const;

@@ -14,15 +14,19 @@ add_executable(server_cpp
                 includes/ServerConfig.hpp
                 src/Server.cpp
                 includes/Server.hpp
-                src/Parser.cpp
-                includes/Parser.hpp
+                src/ParseConfig.cpp
+                includes/ParseConfig.hpp
                 src/Connection.cpp
                 includes/Connection.hpp
                 includes/Exceptions.hpp
                 src/Response.cpp
                 includes/Response.hpp
-        src/RequestHandler.cpp
-        includes/RequestHandler.hpp)
+                src/RequestHandler.cpp
+                includes/RequestHandler.hpp
+                src/get_next_line/get_next_line.h
+                src/get_next_line/get_next_line_utils.cpp
+                src/get_next_line/get_next_line.cpp
+                )
 add_executable(server_old_c
                 server.cpp)
 

@@ -56,23 +56,6 @@ const std::vector<Connection*>&	Server::getConnections() const {
 	return _connections;
 }
 
-void 							Server::acceptConnection(){
-	_connections.push_back(new Connection(_listenSocketFd, *this));
-}
-
-void 							Server::readFromSockets(fd_set readFds){
-	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
-		if (FD_ISSET((*it)->getSocketFd(), &readFds))
-			(*it)->readFromSocket();
-	}
-}
-void 							Server::writeToSockets(fd_set writeFds){
-	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
-		if (FD_ISSET((*it)->getSocketFd(), &writeFds))
-			(*it)->writeToSocket();
-	}
-}
-
 const std::string &Server::get404Path() const {
 	return _404path;
 }
@@ -80,3 +63,70 @@ const std::string &Server::get404Path() const {
 void Server::set404Path(const std::string & path){
 	_404path = path;
 }
+
+std::string Server::getServerName() const {
+	return _serverName;
+}
+
+std::string Server::getHost() const {
+	return _host;
+}
+
+void Server::setHost(std::string &host) {
+	_host = host;
+}
+
+void Server::setServerName(std::string &serverName) {
+	_serverName = serverName;
+	serverName.empty()? throw Exceptions::ServerNameException(): _serverName = serverName;
+}
+
+void 							Server::acceptConnection(){
+	_connections.push_back(new Connection(_listenSocketFd, *this));
+}
+
+void 							Server::readFromSockets(fd_set readFds){
+	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
+		if (FD_ISSET((*it)->getSocketFd(), &readFds)) {
+			(*it)->readFromSocket();
+		}
+	}
+}
+void 							Server::writeToSockets(fd_set writeFds){
+	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
+		if (FD_ISSET((*it)->getSocketFd(), &writeFds)) {
+			(*it)->writeToSocket();
+		}
+	}
+}
+
+int							Server::checkPort(const std::string &parserAnswer){
+	int port;
+	if (parserAnswer.empty() || parserAnswer.length() > 5) {
+		throw Exceptions::PortException();
+	}
+	std::istringstream(parserAnswer) >> port;
+	if (port < 0 || port > 65535){
+		throw Exceptions::PortException();
+	}
+	return port;
+}
+
+long long int Server::getMaxBodySize() const {
+	return _max_body_size;
+}
+
+void Server::setUpMaxBodySize(std::string &parserAnswer){
+	if (parserAnswer.empty() || parserAnswer[0] == '-'){
+		throw Exceptions::MaxBodySizeException();
+	}
+	std::istringstream(parserAnswer) >> _max_body_size;
+}
+
+t_location *Server::getLocations() const {
+	return _locations;
+}
+
+void Server::setLocations(t_location *locations) {
+	_locations = locations;
+};

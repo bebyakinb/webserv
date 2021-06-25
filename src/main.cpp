@@ -1,11 +1,17 @@
 #include "Cluster.hpp"
 #include "Parser.hpp"
+#include "ParseConfig.hpp"
+
 int main(int argc, char **argv){
 	(void)argc;
 	(void)argv;
 	int selectResult;
+	int i = 0;
+	int j = 0;
+	ParseConfig start(argv[1]);
     try {
-		Cluster cluster(Parser(argv[1]).getServerConfigs());
+		start.ParseConf();
+		Cluster cluster(&start);
 		while (1) {
 			cluster.resetSockets();
 			selectResult = cluster.serversSelect();
@@ -24,9 +30,11 @@ int main(int argc, char **argv){
 			cluster.readFromSockets();
 			cluster.writeToSockets();
 			//cluster.closeFds();
-		}
 
+		}
     } catch (std::exception &e){
         std::cerr << e.what() << std::endl;
     }
+	for (int i = 0; i <= start.getPosServ(); i++)  // <--- Этот кусок кода использовать
+		delete start.getServInfo()[i];			   // перед завершением всей программы
 }

@@ -3,6 +3,7 @@
 # include <iostream>
 # include <netinet/in.h>
 # include <map>
+# include <string.h>
 
 class ServerConfig {
 private:

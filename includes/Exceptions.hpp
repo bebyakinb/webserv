@@ -41,14 +41,48 @@ public:
 			return ("FCNTL ERROR");
 		}
 	};
-	class ReadException : public std::exception{
+	class ReadException : public std::exception {
 	public:
-		virtual const char  *what() const throw(){
+		virtual const char *what() const throw() {
 			std::cout << std::strerror(errno) << std::endl;
 			return ("READ ERROR");
 		}
 	};
-
+	class ServerNameException : public std::exception {
+	public:
+		virtual const char *what() const throw() {
+			std::cout << std::strerror(errno) << std::endl;
+			return ("SERVER NAME IN CONFIG IS EMPTY");
+		}
+	};
+	class HostException : public std::exception {
+	public:
+		virtual const char *what() const throw() {
+			std::cout << std::strerror(errno) << std::endl;
+			return ("HOST IN CONFIG IS EMPTY");
+		}
+	};
+	class PortException : public std::exception {
+	public:
+		virtual const char *what() const throw() {
+			std::cout << std::strerror(errno) << std::endl;
+			return ("PORT IN CONFIG IS WRONG");
+		}
+	};
+	class MaxBodySizeException : public std::exception {
+	public:
+		virtual const char *what() const throw() {
+			std::cout << std::strerror(errno) << std::endl;
+			return ("MAX BODY SIZE IN CONFIG IS WRONG");
+		}
+	};
+	class MethodsException : public std::exception {
+	public:
+		virtual const char *what() const throw() {
+			std::cout << std::strerror(errno) << std::endl;
+			return ("ONE OF THE METHODS IN CONFIG IS WRONG");
+		}
+	};
 };
 
 

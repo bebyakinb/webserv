@@ -1,13 +1,49 @@
 #include "Cluster.hpp"
 
-Cluster::Cluster(const std::vector<ServerConfig> &serverConfigs) : _maxFd(0){
-	for (std::vector<ServerConfig>::const_iterator it = serverConfigs.begin() ; it != serverConfigs.end(); ++it){
-		Server newServer;
-		struct sockaddr_in socketAddrTmp;
+Cluster::Cluster(ParseConfig *parser) : _maxFd(0){
+	Server newServer;
+	struct sockaddr_in socketAddrTmp;
 
+	std::vector <ParseConfig *> servInfo = parser->getServInfo();
+	for (int j = 0; j <= parser->getPosServ(); j++)
+	{
+		t_location *ptr;
+		std::map <std::string, std::string> &head_fields = servInfo[j]->getMapHeadFields();
+		std::vector <std::string> locations_sections = servInfo[j]->getValueLocPath();
+		std::map < std::string, std::map<std::string, std::string> > locations_info = servInfo[j]->getMapLoc();
+		std::map < int, std::map<int, std::string> > methods = servInfo[j]->getMethods();
+
+		newServer.setServerName(head_fields["server_name"]);
+		newServer.setHost(head_fields["host"]);
 		socketAddrTmp.sin_family = AF_INET;
 		socketAddrTmp.sin_addr.s_addr = htonl(INADDR_ANY);//inet_addr("192.168.20.38");
-		socketAddrTmp.sin_port = htons(it->getPort());
+		socketAddrTmp.sin_port = htons(newServer.checkPort(head_fields["port"]));
+		newServer.setUpMaxBodySize(head_fields["max_body_size"]);
+		newServer.setLocations(new t_location[locations_sections.size()]);
+		ptr = newServer.getLocations();
+		for (int i = 0; i < locations_sections.size(); i++){
+			ptr[i].url = locations_sections[i];
+			ptr[i].root = locations_info[locations_sections[i]]["root"];
+			ptr[i].index = locations_info[locations_sections[i]]["index"];
+			ptr[i].cgi_extension = locations_info[locations_sections[i]]["cgi_extension"];
+			ptr[i].autoindex = locations_info[locations_sections[i]]["autoindex"] == "on"? 1: 0;
+			ptr[i].methods[0] = 0;
+			ptr[i].methods[1] = 0;
+			ptr[i].methods[2] = 0;
+			for (int a = 0; a <= 3; a++) {
+				if (methods[i][a] == std::string("GET")) {
+					ptr[i].methods[0] = 1;
+				} else if (methods[i][a] == std::string("POST")) {
+					ptr[i].methods[1] = 1;
+				} else if (methods[i][a] == std::string("DELETE")) {
+					ptr[i].methods[2] = 1;
+				} else if (methods[i][a] == std::string("")) { //what the fuck??
+					;
+				} else {
+					throw Exceptions::MethodsException();
+				}
+			}
+		}
 		newServer.setSockAddr(socketAddrTmp);
 		newServer.createListenSocket();
 		_servers.push_back(newServer);
