@@ -25,6 +25,8 @@ private:
 	Response							*_response;
 	std::string							_answer;
 	unsigned long						_bytesToSend;
+	int									_badContentSize;
+	int									_wrongMethods;
 
 public:
 	RequestHandler();

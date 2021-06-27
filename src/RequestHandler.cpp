@@ -59,8 +59,14 @@ int					RequestHandler::checkNewPartOfRequest(char *partOfRequest){
 	_rawRequest += partOfRequest;
 	if (!parseRequest()){//парсинг запроса на готовность к обработке(наличие \n\r\n\r) + заполнение полей
 		return 0;
+		//1) ищем \r\n\r\n
+		//2) если нашли то контен сайз и сравнить с сайзом configa( ReuestHandler._server->_max_body_size), если ошибка уставint _badContentSize;
+		//3) если не нашли контент сайз то это весь запрос вернуть (1) _url = /index.html
+		//4) PUT, DELETE, POST, GET указано что то другое ставишь флаг _wrongMethods
+		//
 	} else {
 		prepareResponse();
+		_rawRequest = "";
 		return 1;
 	}
 }
