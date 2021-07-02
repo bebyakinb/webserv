@@ -12,12 +12,22 @@ Server::~Server() {
 	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
 		delete *it;
 	}
+	for (std::vector<t_location *>::iterator it = _locations.begin(); it != _locations.end(); ++it) {
+		delete *it;
+	}
 }
 
 Server&							Server::operator=( const Server &other){
 	if (this != &other) {
 		_listenSocketFd = other._listenSocketFd;
 		_socketAddr = other._socketAddr;
+		_connections = other._connections;
+		_serverName = other._serverName;
+		_locations = other._locations;
+		_max_body_size = other._max_body_size;
+		_connections = other._connections;
+		_host = other._host;
+		_404path = other._404path;
 	}
 	return (*this);
 }
@@ -82,7 +92,7 @@ void Server::setServerName(std::string &serverName) {
 }
 
 void 							Server::acceptConnection(){
-	_connections.push_back(new Connection(_listenSocketFd, *this));
+	_connections.push_back(new Connection(_listenSocketFd, this));
 }
 
 void 							Server::readFromSockets(fd_set readFds){
@@ -123,10 +133,10 @@ void Server::setUpMaxBodySize(std::string &parserAnswer){
 	std::istringstream(parserAnswer) >> _max_body_size;
 }
 
-t_location *Server::getLocations() const {
+std::vector<t_location*> &Server::getLocations(){
 	return _locations;
 }
 
-void Server::setLocations(t_location *locations) {
+void Server::setLocations(const std::vector<t_location*> &locations) {
 	_locations = locations;
-};
+}

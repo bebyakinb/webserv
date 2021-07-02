@@ -1,9 +1,9 @@
 #include "Connection.hpp"
 
-Connection::Connection(int listenSocketFd, Server &server) :
+Connection::Connection(int listenSocketFd, Server *server) :
 	_status(READ),
 	_addrlen(sizeof(_addr)),
-	_requestHandler(new RequestHandler()),
+	_requestHandler(new RequestHandler(server)),
 	_alreadySent(0){
 	int flags;
 
@@ -14,7 +14,6 @@ Connection::Connection(int listenSocketFd, Server &server) :
 	std::cout << "SUCCESS CONNECTION FROM IP " <<  inet_ntoa(_addr.sin_addr) << std::endl;//
 	std::cout << "CREATE NEW FD = " << _socketFd << std::endl;
 
-	_requestHandler->setServer(&server);
 	//nonblocking mode
 	if ((flags = fcntl(_socketFd, F_GETFL)) == -1)
 		throw Exceptions::FcntlException();

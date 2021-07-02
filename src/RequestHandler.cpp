@@ -4,7 +4,7 @@
 
 #include "RequestHandler.hpp"
 
-RequestHandler::RequestHandler(){
+RequestHandler::RequestHandler(Server *server) : _server(server){
 	_response = new Response();
 }
 
@@ -74,14 +74,14 @@ int					RequestHandler::checkNewPartOfRequest(char *partOfRequest){
 int					RequestHandler::parseRequest(){
 	//<Заглушка>
 	_method = GET;
-	_url = "/index3.html";
+	_url = "/site";
 	_headers.insert( std::pair<std::string, std::string>("Content-Length","555"));
 	return (1);
 	//</Заглушка>
 }
 
 void				RequestHandler::prepareResponse(){
-	urlToPath();
+	setUpPathFromUrl(std::string::npos);
 	std::ifstream file(_filePath.c_str());
 	std::stringstream buffer;
 
@@ -91,7 +91,6 @@ void				RequestHandler::prepareResponse(){
 	if (!file){
 		response404();
 	} else {
-		//цикл по локейшном для определения соотвсевующего
 		// если урл не указывает на файл смотерть в индекс, если нет индекса, искать файл индекс.хтмл если файла нет, смотреть autoindex, если и его нет то ошибка 403
 		// елси файла нет, вернуть 404
 		// если метод не соответвует доступном ошибку 405 и указать досутпные в заголовке Allow
@@ -104,11 +103,29 @@ void				RequestHandler::prepareResponse(){
 	_answer = _response->receiveAnswer();
 	_bytesToSend = _answer.length();
 }
-
-void				RequestHandler::urlToPath(){
-	//<Заглушка>
-	_filePath = "/home/enoelia/01_21school/webserv/www" + _url;
-	//</Заглушка>
+int 				RequestHandler::setUpPathFromUrl(size_t lastSlashUrlPos){
+	size_t newLastSlashUrlPos;
+	if ((newLastSlashUrlPos = _url.find_last_of('/', lastSlashUrlPos - 1)) == std::string::npos){
+		return (0);
+	}
+	//какие бывают кейсы?
+	// url = "/" location = "/" - OK
+	// url = "/index.html" location = "/' - OK
+	// url = "www/index.html" location = "/www"
+	// url = "www/index.html" location = "/www/"
+	// url = "/www/" location = "/www/"
+	// URL либо должен указывать на файл либо оканчиваться "/"!!!
+	for (std::vector<t_location*>::iterator it = _server->getLocations().begin(); it != _server->getLocations().end(); ++it) {
+		std::cout <<"sub str + 1" << _url.substr(0, newLastSlashUrlPos + 1) << std::endl;
+		std::cout <<"sub str" << _url.substr(0, newLastSlashUrlPos) << std::endl;
+		std::cout <<"url" << (*it)->url << std::endl;
+		if (((*it)->url == _url.substr(0, newLastSlashUrlPos + 1)) || ((*it)->url == _url.substr(0, newLastSlashUrlPos))){
+			_filePath = (*it)->root + _url;
+			_currentLocation = *it;
+			return (1);
+		}
+	}
+	return (setUpPathFromUrl(newLastSlashUrlPos));
 }
 
 void				RequestHandler::response404(){

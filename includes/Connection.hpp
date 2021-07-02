@@ -30,7 +30,7 @@ private:
 
 public:
 	Connection();
-	Connection(int listenSocketFd, Server &server);
+	Connection(int listenSocketFd, Server *server);
 	Connection(const Connection &);
 	virtual ~Connection();
 	Connection		&operator=(const Connection &);

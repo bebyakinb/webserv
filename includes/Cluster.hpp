@@ -14,7 +14,7 @@ private:
 	fd_set						_readFds;
 	fd_set						_writeFds;
 	int							_maxFd;
-	std::vector<Server>			_servers;
+	std::vector<Server*>		_servers;
 	struct timeval				_timeout;
 
 	Cluster();
@@ -24,7 +24,7 @@ public:
 	Cluster(ParseConfig *parser);
 	virtual ~Cluster();
 
-	const std::vector<Server>	&getServers() const;
+	const std::vector<Server*>	&getServers() const;
 	void						resetSockets();
 	void						resetFdSets();
 	int							serversSelect();

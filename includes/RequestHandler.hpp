@@ -11,6 +11,7 @@
 
 class Server;
 class Response;
+typedef struct s_location;
 
 class RequestHandler {
 private:
@@ -22,6 +23,7 @@ private:
 	std::map<std::string,std::string>	_headers;
 
 	std::string							_filePath;
+	struct s_location							*_currentLocation;
 	Response							*_response;
 	std::string							_answer;
 	unsigned long						_bytesToSend;
@@ -29,7 +31,7 @@ private:
 	int									_wrongMethods;
 
 public:
-	RequestHandler();
+	RequestHandler(Server *server);
 	RequestHandler(const RequestHandler &);
 	virtual ~RequestHandler();
 	RequestHandler	&operator=(const RequestHandler &);
@@ -48,6 +50,7 @@ public:
 	void				prepareResponse();
 	void				urlToPath();
 	void				response404();
+	int 				setUpPathFromUrl(size_t lastSlashUrlPos);
 };
 
 
