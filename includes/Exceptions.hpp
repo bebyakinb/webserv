@@ -83,6 +83,13 @@ public:
 			return ("ONE OF THE METHODS IN CONFIG IS WRONG");
 		}
 	};
+	class NoSuchErrorException : public std::exception {
+	public:
+		virtual const char *what() const throw() {
+			std::cout << std::strerror(errno) << std::endl;
+			return ("No Such Error");
+		}
+	};
 };
 
 

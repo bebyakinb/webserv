@@ -58,6 +58,7 @@ void		Connection::readFromSocket() {
 	int readValue;
 	char buf[BUFFER_SIZE];
 
+	std::cout << "try read from socket " << _socketFd << std::endl;
 	if ((readValue = read(_socketFd, buf, BUFFER_SIZE + 1)) == -1) {
 		throw Exceptions::ReadException();
 	}
@@ -68,9 +69,10 @@ void		Connection::readFromSocket() {
 		//std::cout << _requestHandler->getRawRequest() << std::endl;//
 	} else {
 		close(_socketFd);
+		std::cout << "\n close fd:" << _socketFd << std::endl;
 		_status = CLOSE;
 	}
-	std::cout << "read return : " << readValue << " BUFF = " << BUFFER_SIZE << std::endl;
+	//std::cout << "read return : " << readValue << " BUFF = " << BUFFER_SIZE << std::endl;
 }
 
 void		Connection::writeToSocket(){
@@ -78,11 +80,12 @@ void		Connection::writeToSocket(){
 
 	tmp = _requestHandler->getAnswer();
 	_alreadySent += write(_socketFd, tmp.c_str() + _alreadySent, tmp.length() - _alreadySent);
-	std::cout << tmp << std::endl;
-	std::cout << _alreadySent << "//" << tmp.length() << std::endl;
+	//std::cout << tmp << std::endl;
+	//std::cout << _alreadySent << "//" << tmp.length() << std::endl;
 
 	if (_alreadySent == _requestHandler->getBytesToSend()){
 		close(_socketFd);
+		std::cout << "\n close fd:" << _socketFd << std::endl;
 		_status = CLOSE;
 	}
 	   // stream used for the conversion

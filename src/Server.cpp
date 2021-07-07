@@ -27,7 +27,9 @@ Server&							Server::operator=( const Server &other){
 		_max_body_size = other._max_body_size;
 		_connections = other._connections;
 		_host = other._host;
-		_404path = other._404path;
+		for (int i = 0; i < ERRS_COUNT; i++) {
+			_errorPaths[i] = other._errorPaths[i];
+		}
 	}
 	return (*this);
 }
@@ -66,14 +68,6 @@ const std::vector<Connection*>&	Server::getConnections() const {
 	return _connections;
 }
 
-const std::string &Server::get404Path() const {
-	return _404path;
-}
-
-void Server::set404Path(const std::string & path){
-	_404path = path;
-}
-
 std::string Server::getServerName() const {
 	return _serverName;
 }
@@ -98,6 +92,7 @@ void 							Server::acceptConnection(){
 void 							Server::readFromSockets(fd_set readFds){
 	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
 		if (FD_ISSET((*it)->getSocketFd(), &readFds)) {
+			std::cout << "read from " << (*it)->getSocketFd() << std::endl;
 			(*it)->readFromSocket();
 		}
 	}
@@ -105,6 +100,7 @@ void 							Server::readFromSockets(fd_set readFds){
 void 							Server::writeToSockets(fd_set writeFds){
 	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
 		if (FD_ISSET((*it)->getSocketFd(), &writeFds)) {
+			std::cout << "write to" << (*it)->getSocketFd() << std::endl;
 			(*it)->writeToSocket();
 		}
 	}
@@ -139,4 +135,8 @@ std::vector<t_location*> &Server::getLocations(){
 
 void Server::setLocations(const std::vector<t_location*> &locations) {
 	_locations = locations;
+}
+
+std::string *Server::getErrorPaths(){
+	return _errorPaths;
 }

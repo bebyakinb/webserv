@@ -1,17 +1,18 @@
 #include "Cluster.hpp"
 
 Cluster::Cluster(ParseConfig *parser) : _maxFd(0){
-	for (int j = 0; j <= parser->getPosServ(); j++)
-	{
+	for (int j = 0; j <= parser->getPosServ(); j++) {
 		Server *newServer = new Server;
 		struct sockaddr_in socketAddrTmp;
-		std::vector <ParseConfig *> servInfo = parser->getServInfo();
-		std::vector<t_location*> tmpVector;
-		
-		std::map <std::string, std::string> &head_fields = servInfo[j]->getMapHeadFields();
-		std::vector <std::string> locations_sections = servInfo[j]->getValueLocPath();
-		std::map < std::string, std::map<std::string, std::string> > locations_info = servInfo[j]->getMapLoc();
-		std::map < int, std::map<int, std::string> > methods = servInfo[j]->getMethods();
+		std::vector<ParseConfig *> servInfo = parser->getServInfo();
+		std::vector<t_location *> tmpVector;
+		std::map<std::string, std::string> errors = servInfo[j]->getErrorPages();
+		std::string *tmpServerErrorPaths = newServer->getErrorPaths();
+
+		std::map<std::string, std::string> &head_fields = servInfo[j]->getMapHeadFields();
+		std::vector<std::string> locations_sections = servInfo[j]->getValueLocPath();
+		std::map<std::string, std::map<std::string, std::string> > locations_info = servInfo[j]->getMapLoc();
+		std::map<int, std::map<int, std::string> > methods = servInfo[j]->getMethods();
 
 		newServer->setServerName(head_fields["server_name"]);
 		newServer->setHost(head_fields["host"]);
@@ -19,6 +20,14 @@ Cluster::Cluster(ParseConfig *parser) : _maxFd(0){
 		socketAddrTmp.sin_addr.s_addr = htonl(INADDR_ANY);//inet_addr("192.168.20.38");
 		socketAddrTmp.sin_port = htons(newServer->checkPort(head_fields["port"]));
 		newServer->setUpMaxBodySize(head_fields["max_body_size"]);
+
+		tmpServerErrorPaths[ERR400] = errors["400"];
+		tmpServerErrorPaths[ERR403] = errors["403"];
+		tmpServerErrorPaths[ERR404] = errors["404"];
+		tmpServerErrorPaths[ERR405] = errors["405"];
+		tmpServerErrorPaths[ERR408] = errors["408"];
+		tmpServerErrorPaths[ERR505] = errors["505"];
+
 		for (int i = 0; i < locations_sections.size(); i++){
 			t_location *tmpLocation = new t_location;
 			tmpVector.push_back(tmpLocation);
@@ -27,16 +36,19 @@ Cluster::Cluster(ParseConfig *parser) : _maxFd(0){
 			tmpLocation->index = locations_info[locations_sections[i]]["index"];
 			tmpLocation->cgi_extension = locations_info[locations_sections[i]]["cgi_extension"];
 			tmpLocation->autoindex = locations_info[locations_sections[i]]["autoindex"] == "on"? 1: 0;
-			tmpLocation->methods[0] = 0;
-			tmpLocation->methods[1] = 0;
-			tmpLocation->methods[2] = 0;
-			for (int a = 0; a <= 3; a++) {
+			tmpLocation->methods[GET] = 0;
+			tmpLocation->methods[POST] = 0;
+			tmpLocation->methods[DELETE] = 0;
+			tmpLocation->methods[PUT] = 0;
+			for (int a = 0; a < METHODS_COUNT; a++) {
 				if (methods[i][a] == std::string("GET")) {
-					tmpLocation->methods[0] = 1;
+					tmpLocation->methods[GET] = 1;
 				} else if (methods[i][a] == std::string("POST")) {
-					tmpLocation->methods[1] = 1;
+					tmpLocation->methods[POST] = 1;
 				} else if (methods[i][a] == std::string("DELETE")) {
-					tmpLocation->methods[2] = 1;
+					tmpLocation->methods[DELETE] = 1;
+				} else if (methods[i][a] == std::string("PUT")) {
+					tmpLocation->methods[PUT] = 1;
 				} else if (methods[i][a] == std::string("")) { //what the fuck??
 					;
 				} else {
@@ -68,9 +80,11 @@ void						Cluster::resetSockets(){
 		(*it)->resetListenSocket(_readFds);
 		for (std::vector<Connection*>::const_iterator  itt = (*it)->getConnections().begin() ; itt != (*it)->getConnections().end(); ++itt){
 			if ((*itt)->getStatus() == READ){
+				std::cout << "new sockets to read " << (*itt)->getSocketFd() << std::endl;
 				FD_SET((*itt)->getSocketFd(), &_readFds);
 			}
 			if ((*itt)->getStatus() == WRITE){
+				std::cout << "new sockets to write " << (*itt)->getSocketFd() << std::endl;
 				FD_SET((*itt)->getSocketFd(), &_writeFds);
 			}
 			(*itt)->getSocketFd() > _maxFd ? _maxFd = (*itt)->getSocketFd() : 0;

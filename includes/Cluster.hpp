@@ -8,6 +8,7 @@
 # include "ServerConfig.hpp"
 # include "Server.hpp"
 # include "ParseConfig.hpp"
+# include "Defenitions.hpp"
 
 class Cluster {
 private:

@@ -5,14 +5,14 @@
 # include <vector>
 # include "Connection.hpp"
 # include "Exceptions.hpp"
-
+# include "Defenitions.hpp"
 class Connection;
 
 typedef struct s_location{
 	std::string		url;
 	std::string		root;
 	std::string		index;
-	int				methods[3];
+	int				methods[METHODS_COUNT];
 	std::string		cgi_extension;
 	int				autoindex;
 } t_location;
@@ -26,7 +26,7 @@ private:
 	std::string					_host;
 	long long int				_max_body_size;
 	std::vector<t_location*>	_locations;
-	std::string					_404path;
+	std::string					_errorPaths[ERRS_COUNT];
 
 public:
 	Server();
@@ -39,13 +39,14 @@ public:
 	const sockaddr_in&				getSocketAddr() const;
 	int								getListenSocketFd() const;
 	const std::vector<Connection*>&	getConnections() const;
-	const std::string &				get404Path() const;
-	void							set404Path(const std::string &);
 	std::string						getServerName() const;
 	void							setServerName(std::string &serverName);
 	std::string						getHost() const;
 	void							setHost(std::string &host);
 	long long int					getMaxBodySize() const;
+
+	std::string 					*getErrorPaths();
+
 	std::vector<t_location*>&		getLocations();
 	void							setLocations(const std::vector<t_location*> &locations);
 

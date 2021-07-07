@@ -3,6 +3,10 @@
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <map>
 
 void exitError(int err_num){
 	if (err_num == READ_ERR){
@@ -25,7 +29,10 @@ std::string readAll(int fd){
 	return result;
 }
 
-int main(){
-	int fd = open("server.cpp", O_RDONLY);
-	std::cout << readAll(fd);
+int main() {
+	//int fd = open("server.cpp", O_RDONLY);
+	//std::cout << readAll(fd);
+	std::map<std::string, std::string> ff;
+	ff.insert(std::pair<std::string, std::string>("asa", "sasass"));
+	std::cout << ff["asaa"] << std::endl;
 }
