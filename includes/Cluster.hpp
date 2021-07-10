@@ -32,7 +32,7 @@ public:
 	void						acceptConnections();
 	void						readFromSockets();
 	void 						writeToSockets();
-	void						closeFds();
+	void						deleteClosedConnections();
 };
 
 

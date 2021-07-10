@@ -123,8 +123,8 @@ void							Cluster::writeToSockets() {
 	}
 }
 
-void 							Cluster::closeFds() {
+void 							Cluster::deleteClosedConnections() {
 	for (std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); ++it) {
-		(*it)->readFromSockets(_readFds);
+		(*it)->deleteClosedConnections();
 	}
 }

@@ -1,12 +1,16 @@
 #include "Cluster.hpp"
 #include "ParseConfig.hpp"
+#include "Exceptions.hpp"
 
 int main(int argc, char **argv){
-	(void)argc;
-	(void)argv;
 	int selectResult;
 	int i = 0;
 	int j = 0;
+
+	if (argc != 2) {
+		Exceptions::WrongArgsNumException();
+		return 1;
+	}
 	ParseConfig start(argv[1]);
     try {
 		start.ParseConf();
@@ -28,7 +32,7 @@ int main(int argc, char **argv){
 			cluster.acceptConnections();
 			cluster.readFromSockets();
 			cluster.writeToSockets();
-			//cluster.closeFds();
+			cluster.deleteClosedConnections();
 
 		}
     } catch (std::exception &e){

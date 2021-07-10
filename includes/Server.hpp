@@ -44,9 +44,7 @@ public:
 	std::string						getHost() const;
 	void							setHost(std::string &host);
 	long long int					getMaxBodySize() const;
-
 	std::string 					*getErrorPaths();
-
 	std::vector<t_location*>&		getLocations();
 	void							setLocations(const std::vector<t_location*> &locations);
 
@@ -55,6 +53,7 @@ public:
 	void 							acceptConnection();
 	void 							readFromSockets(fd_set);
 	void 							writeToSockets(fd_set);
+	void							deleteClosedConnections();
 	int 							checkPort(const std::string &parserAnswer);
 	void							setUpMaxBodySize(std::string &parserAnswer);
 

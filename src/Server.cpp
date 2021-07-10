@@ -90,11 +90,13 @@ void 							Server::acceptConnection(){
 }
 
 void 							Server::readFromSockets(fd_set readFds){
+	int i = 0;
 	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
 		if (FD_ISSET((*it)->getSocketFd(), &readFds)) {
-			std::cout << "read from " << (*it)->getSocketFd() << std::endl;
+			std::cout << i << "read from " << (*it)->getSocketFd() << std::endl;
 			(*it)->readFromSocket();
 		}
+		i++;
 	}
 }
 void 							Server::writeToSockets(fd_set writeFds){
@@ -139,4 +141,15 @@ void Server::setLocations(const std::vector<t_location*> &locations) {
 
 std::string *Server::getErrorPaths(){
 	return _errorPaths;
+}
+
+void							Server::deleteClosedConnections(){
+	for (std::vector<Connection*>::iterator it = _connections.begin(); it != _connections.end();) {
+		if ((*it)->getStatus() == CLOSE) {
+			delete (*it);
+			it = _connections.erase(it);
+		} else {
+			++it;
+		}
+	}
 }
