@@ -65,6 +65,7 @@ static	char	**fill_word(char const *s, char c, char **result)
             if (result[main_count] == 0)
                 return (free_function(result, main_count));
             strncpy(result[main_count], &s[first], i - first + 1);
+            result[main_count][i - first] = '\0';
             main_count++;
         }
         else
