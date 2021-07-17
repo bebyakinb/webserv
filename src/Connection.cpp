@@ -65,9 +65,19 @@ void		Connection::readFromSocket() {
 		_status = CLOSE; //remove client
 	}
 	if (readValue > 0){
-		if (_requestHandler->checkNewPartOfRequest(buf, readValue)){
-			_status = WRITE;
+		try {
+			if (_requestHandler->checkNewPartOfRequest(buf, readValue)) {
+				_status = WRITE;
+			} else {
+				close(_socketFd);
+				std::cout << "\n close fd:" << _socketFd << std::endl;
+				_status = CLOSE;
+			}
+		} catch (std::exception &e) {
+			_status = CLOSE;
+			std::cerr << e.what() << std::endl;
 		}
+
 		//std::cout << _requestHandler->getRawRequest() << std::endl;//
 	} else {
 		close(_socketFd);

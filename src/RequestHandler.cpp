@@ -109,23 +109,23 @@ void				RequestHandler::testPrint()
 int					RequestHandler::checkNewPartOfRequest(char *partOfRequest, int size){
 	_rawRequest.append(partOfRequest, size);
 	int status = parseRequest();
-	if (status == 0){
+	if (status == 0) {//парсинг запроса на готовность к обработке(наличие \n\r\n\r) + заполнение полей
 		return 0;
-	} else if (status > 0){
+//	} else if (status == -1){
+//		if (_badRequest || _badContentSize){
+//			responseError(ERR400);
+//		} else if (_wrongHTTPVersion){
+//			responseError(ERR505);
+//		} else if (_wrongMethods){
+//			responseError(ERR405);
+//		} else {
+//			responseError(ERR400);
+//		}
+	} else {
 		prepareResponse();
 		_rawRequest = "";
-		return 1;
-	} else if (status < 0) {
-		if (_badContentSize || _badRequest) {
-			responseError(ERR400);
-		} else if (_wrongMethods) {
-			responseError(ERR405);
-		} else if (_wrongHTTPVersion) {
-			responseError(ERR505);
-		} else {
-			responseError(ERR400);
-		}
 	}
+	return 1;
 }
 
 int					RequestHandler::checkFirstStr(std::cmatch result, std::regex rex)
@@ -206,6 +206,28 @@ int					RequestHandler::checkHeaders(std::cmatch result, std::regex rex)
 
 int					RequestHandler::checksAfterParse()
 {
+	// if (_headers.find("Transfer-Encoding") != _headers.end() && _method != 1)
+	// {
+	// 	std::string tmp_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
+	// 	std::string value;
+
+	// 	_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
+
+	// 	// while (tmp_body != "\r\n")
+	// 	// {
+	// 	// 	tmp_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4, tmp_body.find("\r\n"));
+	// 	// 	tmp_body.erase(_rawRequest.find("\r\n\r\n") + 4, tmp_body.find("\r\n"));
+	// 	// }
+
+	// 	if (std::regex_match(tmp_body.c_str(), result, rex))
+	// 	{
+	// 		for (size_t i = 0; i < result.size(); i++)
+	// 		{
+	// 			std::cout << i << ". ";
+	// 			std::cout << result[i] << std::endl;
+	// 		}
+	// 	}
+	// }
 	if (_headers.find("Content-Length") != _headers.end() && _method != 1)
 	{
 		if ((strtol(_headers["Content-Length"].c_str(), NULL, 10) > _server->getMaxBodySize() ||
@@ -233,6 +255,13 @@ int					RequestHandler::checksAfterParse()
 		_badRequest = 1;
 		return (-1);
 	}
+	// if (_headers.find("Content-Length") != _headers.end() &&
+	// 	_headers.find("Transfer-Encoding") != _headers.end() &&
+	// 	!_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty())
+	// {
+	// 	_CLAndTE = 1;
+	// 	return (-1);
+	// }
 	return (1);
 }
 
@@ -265,6 +294,13 @@ int					RequestHandler::parseRequest()
 		return (checksAfterParse());
 	}
 	return (0);
+
+
+	// //<Заглушка>
+	// _method = GET;
+	// _url = "/index3.html";
+	// _headers.insert( std::pair<std::string, std::string>("Content-Length","555"));
+	// //</Заглушка>
 }
 
 
