@@ -6,7 +6,7 @@
 
 RequestHandler::RequestHandler(Server *server) : _server(server){
 	_response = new Response();
-	_method = 0;
+	_method = 42;
 	_flagChuked = 0;
 	// _flagParsed = 0;
 	_wrongMethods = 0;
@@ -172,14 +172,13 @@ int					RequestHandler::checkFirstStr(std::cmatch result, std::regex rex)
 	return (0);
 }
 
-
 int					RequestHandler::checkDoubleFields(std::cmatch result)
 {
 	char *tmp = (char *)result[1].str().c_str();
 
 	if (islower(tmp[0]))
 		tmp[0] = tmp[0] - 32;
-	for (long i = 1; i < result[1].length(); i++)
+	for (size_t i = 1; i < result[1].length(); i++)
 	{
 		if (!islower(tmp[i]))
 			tmp[i] = tmp[i] + 32;
@@ -209,43 +208,68 @@ int					RequestHandler::checkHeaders(std::cmatch result, std::regex rex)
 	return (0);
 }
 
-int					RequestHandler::checksAfterParse()
+int					RequestHandler::checksAfterParse(std::cmatch result, std::regex rex)
 {
-	// if (_headers.find("Transfer-Encoding") != _headers.end() && _method != 1)
-	// {
-	// 	std::string tmp_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
-	// 	std::string value;
-
-	// 	_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
-
-	// 	// while (tmp_body != "\r\n")
-	// 	// {
-	// 	// 	tmp_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4, tmp_body.find("\r\n"));
-	// 	// 	tmp_body.erase(_rawRequest.find("\r\n\r\n") + 4, tmp_body.find("\r\n"));
-	// 	// }
-
-	// 	if (std::regex_match(tmp_body.c_str(), result, rex))
-	// 	{
-	// 		for (size_t i = 0; i < result.size(); i++)
-	// 		{
-	// 			std::cout << i << ". ";
-	// 			std::cout << result[i] << std::endl;
-	// 		}
-	// 	}
-	// }
-	if (_headers.find("Content-Length") != _headers.end() && _method != 1)
+	if ((_headers.find("Content-Length") != _headers.end() ||
+		 _headers.find("Transfer-Encoding") != _headers.end()) &&
+		_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty())
+		return (0);
+	if ((_headers.find("Content-Length") == _headers.end() &&
+		 _headers.find("Transfer-Encoding") == _headers.end() &&
+		 !_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty()) ||
+		(_headers.find("Transfer-Encoding") != _headers.end() &&
+		 _headers["Transfer-Encoding"] != "chunked"))
 	{
-		if ((strtol(_headers["Content-Length"].c_str(), NULL, 10) > _server->getMaxBodySize() ||
-			 strtol(_headers["Content-Length"].c_str(), NULL, 10) == 0L ||
-			 strtol(_headers["Content-Length"].c_str(), NULL, 10) == LONG_MAX ||
-			 strtol(_headers["Content-Length"].c_str(), NULL, 10) < 0) &&
+		_badRequest = 1;
+		return (-1);
+	}
+	if (_headers.find("Transfer-Encoding") != _headers.end() && _method != 0)
+	{
+		int count = 0;
+		std::string oneStrBody;
+		std::regex rexCheckEnd("(0\r\n\r\n)");
+		std::string tmpBody = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
+
+		if (!std::regex_search(tmpBody.c_str(), result, rexCheckEnd))
+		{
+			_badRequest = 1;
+			return (-1);
+		}
+		while (tmpBody != "\r\n")
+		{
+			oneStrBody = tmpBody.substr(0, tmpBody.find("\r\n") + 2);
+			if (!std::regex_match(oneStrBody.c_str(), result, rex))
+			{
+				_badRequest = 1;
+				return (-1);
+			}
+			tmpBody.erase(0, tmpBody.find("\r\n") + 2);
+			pushBody(result[1]);
+			count++;
+		}
+		for (size_t i = 0; i < count - 1; i += 2)
+		{
+			if (strtol(_strsBody[0][i].c_str(), NULL, 16) != _strsBody[0][i + 1].size())
+			{
+				_badRequest = 1;
+				return (-1);
+			}
+		}
+		_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
+	}
+	else if (_headers.find("Content-Length") != _headers.end() && _method != 0)
+	{
+		if ((/*strtol(_headers["Content-Length"].c_str(), NULL, 10) > _server->getMaxBodySize() || */
+					strtol(_headers["Content-Length"].c_str(), NULL, 10) == 0L ||
+					strtol(_headers["Content-Length"].c_str(), NULL, 10) == ULONG_MAX ||
+					strtol(_headers["Content-Length"].c_str(), NULL, 10) < 0) &&
 			_headers["Content-Length"] != "0")
 		{
 			_badContentSize = 1;
 			return (-1);
 		}
 		if (_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).size() <
-				size_t(std::atoi(_headers["Content-Length"].c_str())))
+			std::atoi(_headers["Content-Length"].c_str()))
 		{
 			_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
 			return (0);
@@ -253,20 +277,6 @@ int					RequestHandler::checksAfterParse()
 		else
 			_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4, std::atoi(_headers["Content-Length"].c_str()));
 	}
-	if (_headers.find("Content-Length") == _headers.end() &&
-		_headers.find("Transfer-Encoding") == _headers.end() &&
-		!_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty())
-	{
-		_badRequest = 1;
-		return (-1);
-	}
-	// if (_headers.find("Content-Length") != _headers.end() &&
-	// 	_headers.find("Transfer-Encoding") != _headers.end() &&
-	// 	!_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty())
-	// {
-	// 	_CLAndTE = 1;
-	// 	return (-1);
-	// }
 	return (1);
 }
 
@@ -282,13 +292,14 @@ int					RequestHandler::parseRequest()
 	std::regex rex_headers("([\\w-]+)"
 						   "(?:\\:)"
 						   "(?:[ ]{1}|)"
-						   "([\\w\\d\\:\\.\\/-]+)"
+						   "(.+)"
+						   "(?:[ ]{1}|)"
 						   "(?:\r\n)");
 
-	std::regex rex_body("([\\w\\d\\:\\.\\/-]+)"
-						"(?:\n\r)");
+	std::regex rex_body("([.]*[^\r\n]+)"
+						"(?:\r\n)");
 
-	for (; _rawRequest[0] == '\r' && _rawRequest[1] == '\n';)
+	for (size_t i = 0; _rawRequest[0] == '\r' && _rawRequest[1] == '\n';)
 		_rawRequest.erase(0, 2);
 	if (_rawRequest.find("\r\n\r\n") != std::string::npos)
 	{
@@ -296,7 +307,7 @@ int					RequestHandler::parseRequest()
 			return (-1);
 		if (checkHeaders(result, rex_headers) == -1)
 			return (-1);
-		return (checksAfterParse());
+		return (checksAfterParse(result, rex_body));
 	}
 	return (0);
 
