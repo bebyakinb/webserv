@@ -335,9 +335,6 @@ void				RequestHandler::prepareResponse(){
 			responseToGetRequest();
 		}
 	}  else if (_method == POST && _currentLocation->methods[POST] ) {
-		_currentLocation->cgi_path = "/Users/patutina/Desktop/july_server/cgi_tester";
-		//NEEEEEED TO FIX!
-		//_currentLocation->cgi_path = "";
 		std::string tmp_path;
 		std::string tmp_url;
 		std::size_t found = _filePath.find_last_of("/");
@@ -452,11 +449,14 @@ void	RequestHandler::cgi_handler()
 	info->_response = _response;
 	info->_server = _server;
 	info->_headers = _headers;
-
-	Cgi cgi_obj;
-	cgi_obj.cgi_start(info);
-	//changed
-	responseAll("HTTP/1.1 200 Ok", cgi_obj.getResponseBody(), _filePath.substr(_filePath.find_last_of('.') + 1));
+   
+   	if (!info->_body.empty()){
+       Cgi cgi_obj;
+       cgi_obj.cgi_start(info);
+       responseAll("HTTP/1.1 200 Ok", cgi_obj.getResponseBody(), _filePath.substr(_filePath.find_last_of('.') + 1));
+  	}
+   	else
+       responseAll("HTTP/1.1 204 No Content", "", _filePath.substr(_filePath.find_last_of('.') + 1));
 }
 
 void	RequestHandler::responseToPostRequest()
@@ -621,9 +621,9 @@ void	RequestHandler::autoindex_execution()
 
 	response = "";
 	response = response + "<html>\n"
-			   + "<head><title>Index of " + location + "</title></head>\n"
+			   + "<head><title>Index of " + _url + "</title></head>\n"
 			   + "<body bgcolor=\"white\">\n"
-			   + "<h1>Index of " + location + "</h1><hr><pre>";
+			   + "<h1>Index of " + _url + "</h1><hr><pre>";
 	for (std::list<_file *>::iterator it = _files.begin(); it != _files.end(); )
 	{
 		if ((*it)->if_dir == true) {
