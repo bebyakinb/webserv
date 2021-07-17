@@ -210,15 +210,16 @@ int					RequestHandler::checkHeaders(std::cmatch result, std::regex rex)
 
 int					RequestHandler::checksAfterParse(std::cmatch result, std::regex rex)
 {
-	if ((_headers.find("Content-Length") != _headers.end() ||
-		 _headers.find("Transfer-Encoding") != _headers.end()) &&
-		_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty())
-		return (0);
-	if ((_headers.find("Content-Length") == _headers.end() &&
-		 _headers.find("Transfer-Encoding") == _headers.end() &&
-		 !_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty()) ||
-		(_headers.find("Transfer-Encoding") != _headers.end() &&
-		 _headers["Transfer-Encoding"] != "chunked"))
+    if ((_headers.find("Content-Length") != _headers.end() ||
+         _headers.find("Transfer-Encoding") != _headers.end()) &&
+        _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty() &&
+        std::atoi(_headers["Content-Length"].c_str()) != 0 && _method != 1)
+        return (0);
+    if (((_headers.find("Content-Length") == _headers.end() &&
+          _headers.find("Transfer-Encoding") == _headers.end() &&
+          !_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty()) ||
+         (_headers.find("Transfer-Encoding") != _headers.end() &&
+          _headers["Transfer-Encoding"] != "chunked")) && _method != 1)
 	{
 		_badRequest = 1;
 		return (-1);
@@ -323,6 +324,7 @@ int					RequestHandler::parseRequest()
 void				RequestHandler::prepareResponse(){
 	if (_method == GET && _url.back() != '/' && _url.find('.') == std::string::npos)
 		_url += "/";
+
 	setUpPathFromUrl(std::string::npos);
 	struct stat buff;
 	if (_method == GET && _currentLocation->methods[GET] ) {
@@ -346,29 +348,60 @@ void				RequestHandler::prepareResponse(){
 			responseToGetRequest();
 		}
 	}  else if (_method == POST && _currentLocation->methods[POST] ) {
-		std::string tmp_path;
-		std::string tmp_url;
-		std::size_t found = _filePath.find_last_of("/");
-		tmp_path = _filePath.substr(0,found+1);
-		tmp_url = _filePath.substr(found+1);
-		_url = tmp_url;
-		_filePath = tmp_path;
-		if (stat(_filePath.c_str(), &buff) == -1) {
-			responseError(ERR404);
-		} else if (S_ISDIR(buff.st_mode))
-		{
-			//changed
-			if (_url.empty() && (_url != "/")) {
-				responseToPostRequest();
-			} else if (!_currentLocation->cgi_path.empty()) {
-				responseToPostRequest();
-			} else {
-				responseError(ERR400);
-			}
-		} else {
-			responseError(ERR404);
-		}
-	}
+	    //в методе post мне нужно, чтобы только url - все после location
+        std::string tmp_path;
+        std::string tmp_url;
+        std::string name;
+        std::size_t found;
+        if (_filePath.back() == '/') {
+            found = _filePath.find_last_of('/');
+            tmp_path = _filePath.substr(0, found);
+            _filePath = tmp_path;
+            found = _url.find_last_of('/');
+            tmp_url = _url.substr(0, found);
+            _url = tmp_url;
+        }
+        if (!_currentLocation->cgi_path.empty()) {
+            if (stat(_currentLocation->root.c_str(), &buff) == -1)
+                responseError(ERR404);
+            else if (S_ISDIR(buff.st_mode))
+                responseToPostRequest();
+            else
+                responseError(ERR404);
+        } else {
+            if (_url == "" || _url == "/")
+                responseError(ERR400);
+            if (stat((_currentLocation->root).c_str(), &buff) == -1)
+                responseError(ERR404);
+            else if (S_ISDIR(buff.st_mode)) {
+                responseToPostRequest();
+            } else {
+                responseError(ERR404);
+            }
+
+//            found = _filePath.find_last_of('/');
+//            tmp_path = _filePath.substr(0, found + 1);
+//            name = _filePath.substr(found + 1);
+//            _filePath = tmp_path;
+//            if (name == _url || _url == "")
+//                responseError(ERR400);
+//            else
+//            {
+//                found = _filePath.find_last_of('/');
+//                tmp_path = _filePath.substr(0, found + 1);
+//                _url = _filePath.substr(found + 1);
+//                _filePath = tmp_path;
+//                if (stat((_filePath + _url).c_str(), &buff) == -1) {
+//                    responseError(ERR404);
+//                } else if (S_ISDIR(buff.st_mode)) {
+//                    _url = _url + name;
+//                    responseToPostRequest();
+//                } else {
+//                    responseError(ERR404);
+//                }
+//            }
+        }
+    }
 	else if (_method == DELETE && _currentLocation->methods[DELETE] )
 	{
 		std::size_t found = _filePath.find_last_of("/");
@@ -472,7 +505,7 @@ void	RequestHandler::cgi_handler()
 
 void	RequestHandler::responseToPostRequest()
 {
-	std::string filename = _filePath + _url;
+	std::string filename = _currentLocation->root + _url;
 
 	if ((_currentLocation->cgi_path).empty())
 	{
@@ -481,6 +514,7 @@ void	RequestHandler::responseToPostRequest()
 			std::ofstream file(filename, std::ios::out | std::ios::in | std::ios::trunc);
 			if (file.is_open())
 			{
+                file << _body;
 				responseAll("HTTP/1.1 204 No Content", "", "html");
 				file.close();
 			}
@@ -498,8 +532,9 @@ void	RequestHandler::responseToPostRequest()
 			}
 		}
 	}
-	else
-		cgi_handler();
+	else {
+        cgi_handler();
+    }
 }
 
 void	RequestHandler::responseToDeleteRequest()
