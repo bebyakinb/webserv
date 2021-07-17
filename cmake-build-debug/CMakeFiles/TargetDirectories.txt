@@ -1,0 +1,5 @@
+/Users/patutina/Desktop/final/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/patutina/Desktop/final/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/patutina/Desktop/final/cmake-build-debug/CMakeFiles/server_test.dir
+/Users/patutina/Desktop/final/cmake-build-debug/CMakeFiles/server_old_c.dir
+/Users/patutina/Desktop/final/cmake-build-debug/CMakeFiles/server_cpp.dir
