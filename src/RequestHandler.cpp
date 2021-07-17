@@ -13,6 +13,22 @@ RequestHandler::RequestHandler(Server *server) : _server(server){
 	_badContentSize = 0;
 	_wrongHTTPVersion = 0;
 	_badRequest = 0;
+	_servAnswer = {
+			{ERR400, "HTTP/1.1 400 Bad Request\n"},
+			{ERR403, "HTTP/1.1 403 Forbidden\n"},
+			{ERR404, "HTTP/1.1 404 Not Found\n"},
+			{ERR405, "HTTP/1.1 405 Method Not Allowed\n"},
+			{ERR408, "HTTP/1.1 408 Request Timeout\n"},
+			{ERR505, "HTTP/1.1 505 HTTP Version Not Supported\n"}
+			};
+	_defaultErrors = {
+			{ERR400,"<!DOCTYPE html>\n<html><title>400</title><body>Error 400 Bad Request</body></html>\n"},
+			{ERR403,"<!DOCTYPE html>\n<html><title>403</title><body>Error 403 Forbidden</body></html>\n"},
+			{ERR404,"<!DOCTYPE html>\n<html><title>404</title><body>Error 404 Not Found</body></html>\n"},
+			{ERR405,"<!DOCTYPE html>\n<html><title>405</title><body>Error 405 Method Not Allowed</body></html>\n"},
+			{ERR408,"<!DOCTYPE html>\n<html><title>408</title><body>Error 408 Request Timeout</body></html>\n"},
+			{ERR505,"<!DOCTYPE html>\n<html><title>505</title><body>Error 505 HTTP Version Not Supported</body></html>\n"}
+	};
 }
 
 RequestHandler::RequestHandler(const RequestHandler &other){
@@ -90,19 +106,25 @@ void				RequestHandler::testPrint()
 	std::cout << "_body: " << std::endl << std::endl << _body << std::endl;
 }
 
-int					RequestHandler::checkNewPartOfRequest(char *partOfRequest){
-	_rawRequest += partOfRequest;
-	if (!parseRequest()){//парсинг запроса на готовность к обработке(наличие \n\r\n\r) + заполнение полей
+int					RequestHandler::checkNewPartOfRequest(char *partOfRequest, int size){
+	_rawRequest.append(partOfRequest, size);
+	int status = parseRequest();
+	if (status == 0){
 		return 0;
-		//1) ищем \r\n\r\n
-		//2) если нашли то контен сайз и сравнить с сайзом configa( ReuestHandler._server->_max_body_size), если ошибка уставint _badContentSize;
-		//3) если не нашли контент сайз то это весь запрос вернуть (1) _url = /index.html
-		//4) PUT, DELETE, POST, GET указано что то другое ставишь флаг _wrongMethods
-		//
-	} else {
+	} else if (status > 0){
 		prepareResponse();
 		_rawRequest = "";
 		return 1;
+	} else if (status < 0) {
+		if (_badContentSize || _badRequest) {
+			responseError(ERR400);
+		} else if (_wrongMethods) {
+			responseError(ERR405);
+		} else if (_wrongHTTPVersion) {
+			responseError(ERR505);
+		} else {
+			responseError(ERR400);
+		}
 	}
 }
 
@@ -152,7 +174,7 @@ int					RequestHandler::checkDoubleFields(std::cmatch result)
 
 	if (islower(tmp[0]))
 		tmp[0] = tmp[0] - 32;
-	for (size_t i = 1; i < result[1].length(); i++)
+	for (long i = 1; i < result[1].length(); i++)
 	{
 		if (!islower(tmp[i]))
 			tmp[i] = tmp[i] + 32;
@@ -182,37 +204,13 @@ int					RequestHandler::checkHeaders(std::cmatch result, std::regex rex)
 	return (0);
 }
 
-int					RequestHandler::checksAfterParse(std::cmatch result, std::regex rex)
+int					RequestHandler::checksAfterParse()
 {
-	static int byte_readed = 0;
-
-	// if (_headers.find("Transfer-Encoding") != _headers.end() && _method != 1)
-	// {
-	// 	std::string tmp_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
-	// 	std::string value;
-
-	// 	_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
-
-	// 	// while (tmp_body != "\r\n")
-	// 	// {
-	// 	// 	tmp_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4, tmp_body.find("\r\n"));
-	// 	// 	tmp_body.erase(_rawRequest.find("\r\n\r\n") + 4, tmp_body.find("\r\n"));
-	// 	// }
-
-	// 	if (std::regex_match(tmp_body.c_str(), result, rex))
-	// 	{
-	// 		for (size_t i = 0; i < result.size(); i++)
-	// 		{
-	// 			std::cout << i << ". ";
-	// 			std::cout << result[i] << std::endl;
-	// 		}
-	// 	}
-	// }
 	if (_headers.find("Content-Length") != _headers.end() && _method != 1)
 	{
 		if ((strtol(_headers["Content-Length"].c_str(), NULL, 10) > _server->getMaxBodySize() ||
 			 strtol(_headers["Content-Length"].c_str(), NULL, 10) == 0L ||
-			 strtol(_headers["Content-Length"].c_str(), NULL, 10) == ULONG_MAX ||
+			 strtol(_headers["Content-Length"].c_str(), NULL, 10) == LONG_MAX ||
 			 strtol(_headers["Content-Length"].c_str(), NULL, 10) < 0) &&
 			_headers["Content-Length"] != "0")
 		{
@@ -220,7 +218,7 @@ int					RequestHandler::checksAfterParse(std::cmatch result, std::regex rex)
 			return (-1);
 		}
 		if (_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).size() <
-			std::atoi(_headers["Content-Length"].c_str()))
+				size_t(std::atoi(_headers["Content-Length"].c_str())))
 		{
 			_body = _rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4);
 			return (0);
@@ -235,13 +233,6 @@ int					RequestHandler::checksAfterParse(std::cmatch result, std::regex rex)
 		_badRequest = 1;
 		return (-1);
 	}
-	// if (_headers.find("Content-Length") != _headers.end() &&
-	// 	_headers.find("Transfer-Encoding") != _headers.end() &&
-	// 	!_rawRequest.substr(_rawRequest.find("\r\n\r\n") + 4).empty())
-	// {
-	// 	_CLAndTE = 1;
-	// 	return (-1);
-	// }
 	return (1);
 }
 
@@ -263,7 +254,7 @@ int					RequestHandler::parseRequest()
 	std::regex rex_body("([\\w\\d\\:\\.\\/-]+)"
 						"(?:\n\r)");
 
-	for (size_t i = 0; _rawRequest[0] == '\r' && _rawRequest[1] == '\n';)
+	for (; _rawRequest[0] == '\r' && _rawRequest[1] == '\n';)
 		_rawRequest.erase(0, 2);
 	if (_rawRequest.find("\r\n\r\n") != std::string::npos)
 	{
@@ -271,20 +262,15 @@ int					RequestHandler::parseRequest()
 			return (-1);
 		if (checkHeaders(result, rex_headers) == -1)
 			return (-1);
-		return (checksAfterParse(result, rex_body));
+		return (checksAfterParse());
 	}
 	return (0);
-
-
-	// //<Заглушка>
-	// _method = GET;
-	// _url = "/index3.html";
-	// _headers.insert( std::pair<std::string, std::string>("Content-Length","555"));
-	// //</Заглушка>
 }
 
 
 void				RequestHandler::prepareResponse(){
+	if (_url.back() != '/' && _url.find('.') == std::string::npos)
+		_url += "/";
 	setUpPathFromUrl(std::string::npos);
 	struct stat buff;
 	if (_method == GET && _currentLocation->methods[GET] ) {
@@ -302,6 +288,8 @@ void				RequestHandler::prepareResponse(){
 				responseToGetRequest();
 			} else
 				responseError(ERR404);
+		} else if (S_ISREG(buff.st_mode)){
+			responseToGetRequest();
 		}
 	} else {
 		responseError(ERR405);
@@ -322,11 +310,11 @@ int 				RequestHandler::setUpPathFromUrl(size_t lastSlashUrlPos){
 	// url = "/www/" location = "/www/"
 	// URL либо должен указывать на файл либо оканчиваться "/"!!!
 	for (std::vector<t_location*>::iterator it = _server->getLocations().begin(); it != _server->getLocations().end(); ++it) {
-		//std::cout <<"sub str + 1" << _url.substr(0, newLastSlashUrlPos + 1) << std::endl;
-		//std::cout <<"sub str" << _url.substr(0, newLastSlashUrlPos) << std::endl;
-		//std::cout <<"url" << (*it)->url << std::endl;
+		std::cout <<"sub str + 1" << _url.substr(0, newLastSlashUrlPos + 1) << std::endl;
+		std::cout <<"sub str" << _url.substr(0, newLastSlashUrlPos) << std::endl;
+		std::cout <<"url" << (*it)->url << std::endl;
 		if (((*it)->url == _url.substr(0, newLastSlashUrlPos + 1)) || ((*it)->url == _url.substr(0, newLastSlashUrlPos))){
-			_filePath = (*it)->root + _url;
+			_filePath = (*it)->root + _url.substr(newLastSlashUrlPos);
 			_currentLocation = *it;
 			return (1);
 		}
@@ -337,35 +325,16 @@ int 				RequestHandler::setUpPathFromUrl(size_t lastSlashUrlPos){
 void				RequestHandler::responseError(int errNum){
 	std::stringstream buffer;
 	std::ifstream file(_server->getErrorPaths()[errNum].c_str());
-	std::string serverAnswer;
-
+	std::string serverAnswer = _servAnswer[errNum];
+	if (serverAnswer.empty())
+		throw Exceptions::NoSuchErrorException();
 	if (_server->getErrorPaths()[errNum].empty() || !file ) {
-		if (errNum == ERR400) {
-			serverAnswer = "HTTP/1.1 404 Not Found\n";
-			buffer << "<!DOCTYPE html>\n<html><title>400</title><body>Error 404 Not Found</body></html>\n";
-		} else if (errNum == ERR403) {
-			serverAnswer = "HTTP/1.1 404 Not Found\n";
-			buffer << "<!DOCTYPE html>\n<html><title>403</title><body>Error 404 Not Found</body></html>\n";
-		} else if (errNum == ERR404) {
-			serverAnswer = "HTTP/1.1 404 Not Found\n";
-			buffer << "<!DOCTYPE html>\n<html><title>404</title><body>Error 404 Not Found</body></html>\n";
-		} else if (errNum == ERR405) {
-			serverAnswer = "HTTP/1.1 404 Not Found\n";
-			buffer << "<!DOCTYPE html>\n<html><title>405</title><body>Error 404 Not Found</body></html>\n";
-		} else if (errNum == ERR408) {
-			serverAnswer = "HTTP/1.1 404 Not Found\n";
-			buffer << "<!DOCTYPE html>\n<html><title>408</title><body>Error 404 Not Found</body></html>\n";
-		} else if (errNum == ERR505) {
-			serverAnswer = "HTTP/1.1 404 Not Found\n";
-			buffer << "<!DOCTYPE html>\n<html><title>505</title><body>Error 404 Not Found</body></html>\n";
-		} else {
-			throw Exceptions::NoSuchErrorException();
-		}
+		buffer << _defaultErrors[errNum];
 	} else {
 		buffer << file.rdbuf();
 	}
 	_response->setUpBody(buffer);
-	_response->setUpHeaders();
+	_response->setUpHeaders("html");
 	_response->setServerAnswer(serverAnswer);
 }
 
@@ -379,6 +348,6 @@ void	RequestHandler::responseToGetRequest(){
 		buffer << file.rdbuf();
 		_response->setServerAnswer("HTTP/1.1 200 OK\n");
 		_response->setUpBody(buffer);
-		_response->setUpHeaders();
+		_response->setUpHeaders(_filePath.substr(_filePath.find_last_of('.') + 1));
 	}
 }

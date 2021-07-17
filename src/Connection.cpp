@@ -26,6 +26,7 @@ Connection::Connection(const Connection &other){
 }
 
 Connection::~Connection() {
+	delete _requestHandler;
 }
 
 Connection&	Connection::operator=( const Connection &other){
@@ -60,10 +61,11 @@ void		Connection::readFromSocket() {
 
 	std::cout << "try read from socket " << _socketFd << std::endl;
 	if ((readValue = read(_socketFd, buf, BUFFER_SIZE + 1)) == -1) {
-		throw Exceptions::ReadException();
+		close(_socketFd);
+		_status = CLOSE; //remove client
 	}
 	if (readValue > 0){
-		if (_requestHandler->checkNewPartOfRequest(buf)){
+		if (_requestHandler->checkNewPartOfRequest(buf, readValue)){
 			_status = WRITE;
 		}
 		//std::cout << _requestHandler->getRawRequest() << std::endl;//
@@ -80,29 +82,13 @@ void		Connection::writeToSocket(){
 
 	tmp = _requestHandler->getAnswer();
 	_alreadySent += write(_socketFd, tmp.c_str() + _alreadySent, tmp.length() - _alreadySent);
-	//std::cout << tmp << std::endl;
-	//std::cout << _alreadySent << "//" << tmp.length() << std::endl;
-
+	if (_alreadySent == -1) {
+		close(_socketFd);
+		_status = CLOSE; // remove client
+	}
 	if (_alreadySent == _requestHandler->getBytesToSend()){
 		close(_socketFd);
 		std::cout << "\n close fd:" << _socketFd << std::endl;
 		_status = CLOSE;
 	}
-	   // stream used for the conversion
-//	std::ifstream t("/home/enoelia/01_21school/webserv/www/index.html");
-//	std::string str((std::istreambuf_iterator<char>(t)),
-//					std::istreambuf_iterator<char>());
-//	std::ostringstream convert;
-//
-//	std::string res = "";
-//	res += "HTTP/1.1 200 OK\nContent-Length: ";
-//	res += std::to_string(str.length());
-//	res += "\r\n\r\n";
-//	res += str;
-//	//res += "<!DOCTYPE html>\n<html><title>40404</title><body>There was an error finding your error page</body></html>\n";
-//	res +=  "\r\n\r\n";
-//	std::cout << res << std::endl;
-//	writeValue = write(_socketFd, res.c_str(), res.length());
-//	std::cout << "write return : " <<writeValue << std::endl;
-//	_status = CLOSE;
 }

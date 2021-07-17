@@ -13,7 +13,7 @@ typedef struct s_location{
 	std::string		root;
 	std::string		index;
 	int				methods[METHODS_COUNT];
-	std::string		cgi_extension;
+	std::string		cgi_path;
 	int				autoindex;
 } t_location;
 

@@ -4,15 +4,13 @@
 
 int main(int argc, char **argv){
 	int selectResult;
-	int i = 0;
-	int j = 0;
 
 	if (argc != 2) {
-		Exceptions::WrongArgsNumException();
+		std::cerr << "WRONG NUMBER OF ARGUMENTS" << std::endl;
 		return 1;
 	}
 	ParseConfig start(argv[1]);
-    try {
+	try {
 		start.ParseConf();
 		Cluster cluster(&start);
 		while (1) {

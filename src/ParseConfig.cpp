@@ -113,7 +113,7 @@ void ParseConfig::FieldValidCheck(std::string *str)
 void ParseConfig::Parse2ndLevel(std::string str)
 {
 	std::string tmp;
-	std::string second_level[5] = {"root", "index", "method", "cgi_extension", "autoindex"};
+	std::string second_level[5] = {"root", "index", "method", "cgi_path", "autoindex"};
 
 	tmp = str.substr(0, str.find(':') == std::string::npos ? str.find(' ') : str.find(':'));
 	_servinfo[_pos_serv]->_location[_servinfo[_pos_serv]->getValueLocPath()[_pos_loc]].count(tmp) == 1 ? throw "double field" : 0;
@@ -260,7 +260,7 @@ void ParseConfig::TestPrint(void)
 				std::cout << _servinfo[j]->_methods[_pos_loc][a] << " ";
 			std::cout << std::endl;
 
-			std::cout << "	cgi_extension: " << _servinfo[j]->_location[_servinfo[j]->getValueLocPath()[i]]["cgi_extension"] << std::endl;
+			std::cout << "	cgi_path: " << _servinfo[j]->_location[_servinfo[j]->getValueLocPath()[i]]["cgi_path"] << std::endl;
 			std::cout << "	autoindex: " << _servinfo[j]->_location[_servinfo[j]->getValueLocPath()[i]]["autoindex"] << std::endl;
 
 			std::cout << std::endl << "---" << std::endl << std::endl;

@@ -28,13 +28,15 @@ Cluster::Cluster(ParseConfig *parser) : _maxFd(0){
 		tmpServerErrorPaths[ERR408] = errors["408"];
 		tmpServerErrorPaths[ERR505] = errors["505"];
 
-		for (int i = 0; i < locations_sections.size(); i++){
+		for (size_t i = 0; i < locations_sections.size(); i++){
 			t_location *tmpLocation = new t_location;
 			tmpVector.push_back(tmpLocation);
 			tmpLocation->url = locations_sections[i];
 			tmpLocation->root = locations_info[locations_sections[i]]["root"];
+			if (tmpLocation->root.length() != 1 && tmpLocation->root.back() == '/')
+				tmpLocation->root = tmpLocation->root.substr(0, tmpLocation->root.size() - 1);
 			tmpLocation->index = locations_info[locations_sections[i]]["index"];
-			tmpLocation->cgi_extension = locations_info[locations_sections[i]]["cgi_extension"];
+			tmpLocation->cgi_path = locations_info[locations_sections[i]]["cgi_path"];
 			tmpLocation->autoindex = locations_info[locations_sections[i]]["autoindex"] == "on"? 1: 0;
 			tmpLocation->methods[GET] = 0;
 			tmpLocation->methods[POST] = 0;

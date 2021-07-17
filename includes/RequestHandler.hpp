@@ -11,7 +11,9 @@
 
 class Server;
 class Response;
-typedef struct s_location;
+typedef struct s_location t_location;
+
+
 
 class RequestHandler {
 private:
@@ -22,6 +24,8 @@ private:
 	std::string							_body;
 	std::string							_url;
 	std::map<std::string,std::string>	_headers;
+	std::map<int,std::string>			_servAnswer;
+	std::map<int,std::string>			_defaultErrors;
 
 	std::string							_filePath;
 	struct s_location					*_currentLocation;
@@ -51,9 +55,9 @@ public:
 	const std::string& 	getAnswer() const;
 	unsigned long		getBytesToSend() const;
 
-	int					checkNewPartOfRequest(char *partOfRequest);
+	int					checkNewPartOfRequest(char *partOfRequest, int size);
 	int					parseRequest();//парсинг запроса на готовность к обработке(наличие \n\r\n\r) + заполнние полей
-	int					checksAfterParse(std::cmatch result, std::regex rex_body);
+	int					checksAfterParse();
 	int					checkDoubleFields(std::cmatch result);
 	int					checkHeaders(std::cmatch result, std::regex rex);
 	int					checkFirstStr(std::cmatch result, std::regex rex);

@@ -11,12 +11,6 @@ private:
 	virtual ~Exceptions();
 	Exceptions		&operator=(const Exceptions &);
 public:
-	class WrongArgsNumException : public std::exception{
-	public:
-		virtual const char  *what() const throw(){
-			return ("WRONG ARGUMENTS NUMBER");
-		}
-	};
 	class SocketCreationException : public std::exception{
 	public:
 		virtual const char  *what() const throw(){
