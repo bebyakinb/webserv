@@ -63,7 +63,7 @@ public:
 
 	int					checkNewPartOfRequest(char *partOfRequest, int size);
 	int					parseRequest();//парсинг запроса на готовность к обработке(наличие \n\r\n\r) + заполнние полей
-	int					checksAfterParse();
+	int					checksAfterParse(std::cmatch result, std::regex rex);
 	int					checkDoubleFields(std::cmatch result);
 	int					checkHeaders(std::cmatch result, std::regex rex);
 	int					checkFirstStr(std::cmatch result, std::regex rex);
