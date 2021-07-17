@@ -321,7 +321,7 @@ int					RequestHandler::parseRequest()
 
 
 void				RequestHandler::prepareResponse(){
-	if (_url.back() != '/' && _url.find('.') == std::string::npos)
+	if (_method == GET && _url.back() != '/' && _url.find('.') == std::string::npos)
 		_url += "/";
 	setUpPathFromUrl(std::string::npos);
 	struct stat buff;
