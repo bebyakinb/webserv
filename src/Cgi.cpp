@@ -1,4 +1,6 @@
-# include "Cgi.hpp"
+#include "Cgi.hpp"
+#include <fcntl.h>
+#include <vector>
 
 void print_envp(char **envp)
 {
@@ -160,6 +162,8 @@ void Cgi::cgi_set_envs()
 
 void Cgi::cgi_start(t_info_to_cgi *info)
 {
+    if (info->_url.empty())
+        info->_url = "/www";
     _cgi_info = info;
     cgi_set_envs();
     map_envs_to_char_array();
