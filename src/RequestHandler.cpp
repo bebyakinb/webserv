@@ -78,6 +78,11 @@ unsigned long RequestHandler::getBytesToSend() const {
 	return _bytesToSend;
 }
 
+void RequestHandler::pushBody(std::string strBody)
+{
+	this->_strsBody[this->_strsBody.size() - 1].push_back(strBody);
+}
+
 
 void				RequestHandler::testPrint()
 {
@@ -327,7 +332,48 @@ void				RequestHandler::prepareResponse(){
 		} else if (S_ISREG(buff.st_mode)){
 			responseToGetRequest();
 		}
-	} else {
+	}  else if (_method == POST && _currentLocation->methods[POST] ) {
+		_currentLocation->cgi_path = "/Users/patutina/Desktop/july_server/cgi_tester";
+		//NEEEEEED TO FIX!
+		//_currentLocation->cgi_path = "";
+		std::string tmp_path;
+		std::string tmp_url;
+		std::size_t found = _filePath.find_last_of("/");
+		tmp_path = _filePath.substr(0,found+1);
+		tmp_url = _filePath.substr(found+1);
+		_url = tmp_url;
+		_filePath = tmp_path;
+		if (stat(_filePath.c_str(), &buff) == -1) {
+			responseError(ERR404);
+		} else if (S_ISDIR(buff.st_mode))
+		{
+			//changed
+			if (_url.empty() && (_url != "/")) {
+				responseToPostRequest();
+			} else if (!_currentLocation->cgi_path.empty()) {
+				responseToPostRequest();
+			} else {
+				responseError(ERR400);
+			}
+		} else {
+			responseError(ERR404);
+		}
+	}
+	else if (_method == DELETE && _currentLocation->methods[DELETE] )
+	{
+		std::size_t found = _filePath.find_last_of("/");
+		_url = _filePath.substr(found+1);
+		if (stat(_filePath.c_str(), &buff) == -1)
+			responseError(ERR404);//нет такого пути или файла
+		else
+		{
+			if (_url.empty() || !(_url != "/"))
+				responseError(ERR400);
+			else
+				responseToDeleteRequest();//Compare to original NGINX
+		}
+	}
+	else {
 		responseError(ERR405);
 	}
 	_answer = _response->receiveAnswer();
@@ -386,4 +432,254 @@ void	RequestHandler::responseToGetRequest(){
 		_response->setUpBody(buffer);
 		_response->setUpHeaders(_filePath.substr(_filePath.find_last_of('.') + 1));
 	}
+}
+
+
+void	RequestHandler::cgi_handler()
+{
+	t_info_to_cgi *info;
+	info = new t_info_to_cgi;
+
+	info->_answer = _answer;
+	info->_body = _body;
+	info->_bytesToSend = _bytesToSend;
+	info->_currentLocation = _currentLocation;
+	info->_filePath = _filePath;
+	info->_url = _url;
+	info->_cgi_path = _currentLocation->cgi_path;
+	info->_response = _response;
+	info->_server = _server;
+	info->_headers = _headers;
+
+	Cgi cgi_obj;
+	cgi_obj.cgi_start(info);
+	//changed
+	responseAll("HTTP/1.1 200 Ok", cgi_obj.getResponseBody());
+}
+
+void	RequestHandler::responseToPostRequest()
+{
+	std::string filename = _filePath + _url;
+
+	if ((_currentLocation->cgi_path).empty())
+	{
+		if (if_file_exists(filename) == true)
+		{
+			std::ofstream file(filename, std::ios::out | std::ios::in | std::ios::trunc);
+			if (file.is_open())
+			{
+				responseAll("HTTP/1.1 204 No Content", "");
+				file.close();
+			}
+			else
+				responseError(ERR403);
+		}
+		else
+		{
+			std::ofstream file(filename, std::ios::out | std::ios::in | std::ios::trunc);
+			if (file.is_open())
+			{
+				file << _body;
+				responseAll("HTTP/1.1 201 Created", _body);
+				file.close();
+			}
+		}
+	}
+	else
+		cgi_handler();
+}
+
+void	RequestHandler::responseToDeleteRequest()
+{
+	std::string         status_message;
+	std::stringstream   buffer;
+
+	_body = "";
+	std::ifstream file(_filePath);
+	if (file.good())
+	{
+		buffer << file.rdbuf();
+		std::string delete_body(buffer.str());
+
+		if (remove(_filePath.c_str()) == 0) {
+			if (delete_body.empty() == true)
+				status_message = "HTTP/1.1 204 No content";
+			else {
+				status_message = "HTTP/1.1 200 Ok";
+				_body = delete_body;
+			}
+		} else
+			status_message = "HTTP/1.1 202 Accepted";
+	}
+	else
+		status_message = "HTTP/1.1 403 Forbidden";
+	responseAll(status_message, "");
+}
+
+typedef struct _file
+{
+	std::string name;
+	std::string time;
+	std::string size;
+	bool        if_dir;
+}_file;
+
+void	RequestHandler::autoindex_execution()
+{
+	std::string current_dir;
+	std::string location;
+	std::list<std::string> files;
+	std::list<std::string> times;
+	std::list<std::string> sizes;
+	std::list<_file *> _files;
+
+	current_dir = _filePath;
+	if (current_dir.back() != '/')
+		current_dir = current_dir + "/";
+	location = current_dir;
+	std::cout << "current location: " << location << std::endl;
+
+
+	DIR *d;
+	struct dirent   *dir;
+	struct stat     filestat;
+	char no_seconds[10];
+	char year[10];
+	std::string tmp;
+	t_time   my_time;
+	char **array;
+	std::string time;
+	std::string name;
+	char file_path[1024];
+	_file *file_insatnce;
+
+	d = opendir(location.c_str());
+	files.clear();
+	sizes.clear();
+	times.clear();
+	if (d)
+	{
+		dir = readdir(d);
+		while ((dir = readdir(d)) != NULL)
+		{
+			if(dir->d_name[0] == '.')
+				continue;
+			file_insatnce = new _file;
+			tmp = location + dir->d_name;
+			strcpy(file_path, tmp.c_str());
+			stat(file_path, &filestat);
+			//free(file_path);
+			name = dir->d_name;
+			if (filestat.st_mode == 16877 & dir->d_name[0] != '.')
+				name = name + "/";
+			//Спросить у Бориса, как это сделать нормально
+			array = ft_split(ctime(&filestat.st_mtime), ' ');
+			strcpy(no_seconds, array[3]);
+			strcpy(year, array[4]);
+
+			no_seconds[5] = '\0';
+			year[4] = '\0';
+			my_time.weekday = array[0];
+			my_time.month = array[1];
+			my_time.day = array[2];
+			my_time.time_no_seconds = no_seconds;
+			my_time.year = year;
+
+			time = my_time.day;
+			if (my_time.day[1] == '\0')
+				time = "0" + time;
+			time = time + "-";
+			time = time + my_time.month;
+			time = time + "-";
+			time = time + my_time.year;
+			time = time + " ";
+			time = time + my_time.time_no_seconds;
+
+			if (filestat.st_mode == 16877){
+				tmp = "-";
+				file_insatnce->if_dir = true;}
+			else{
+				tmp = std::to_string(filestat.st_size);
+				file_insatnce->if_dir = false;}
+			file_insatnce->size = tmp;
+			file_insatnce->time = time;
+			file_insatnce->name = name;
+			_files.push_back(file_insatnce);
+			for (int i = 0; array[i] != NULL;)
+				free(array[i++]);
+			free(array);
+		}
+		closedir(d);
+		//if closedir() == -1, throw Exception
+	}
+	//else Exception
+
+	std::string response;
+	std::string line;
+
+	response = "";
+	response = response + "<html>\n"
+			   + "<head><title>Index of " + location + "</title></head>\n"
+			   + "<body bgcolor=\"white\">\n"
+			   + "<h1>Index of " + location + "</h1><hr><pre>";
+	for (std::list<_file *>::iterator it = _files.begin(); it != _files.end(); )
+	{
+		if ((*it)->if_dir == true) {
+			line = "<a href=\"";
+			line = line + (*it)->name;
+			line = line + "\">";
+			line = line + (*it)->name;
+			line = line + "</a>";
+			int space = ((*it)->name).size();
+			for (int space = ((*it)->name).size(); space != 70; space++)
+				line = line + " ";
+			line = line + (*it)->time;
+			for (space = 0; space != 30 - ((*it)->size).size(); space++)
+				line = line + " ";
+			line = line + (*it)->size;
+			it++;
+			line += "\n";
+			response = response + line;
+		}
+		else
+			it++;
+	}
+	for (std::list<_file *>::iterator it = _files.begin(); it != _files.end(); )
+	{
+		if ((*it)->if_dir == false) {
+			line = "<a href=\"";
+			line = line + (*it)->name;
+			line = line + "\">";
+			line = line + (*it)->name;
+			line = line + "</a>";
+			int space = ((*it)->name).size();
+			for (int space = ((*it)->name).size(); space != 70; space++)
+				line = line + " ";
+			line = line + (*it)->time;
+			for (space = 0; space != 30 - ((*it)->size).size(); space++)
+				line = line + " ";
+			line = line + (*it)->size;
+			it++;
+			line += "\n";
+			response = response + line;
+		}
+		else
+			it++;
+	}
+	for (std::list<_file *>::iterator it = _files.begin(); it != _files.end(); )
+	{
+		delete(*it++);
+	}
+	response = response + "</pre><hr></body>\n"
+						  "</html>";
+	responseAll("HTTP/1.1 200 OK" ,response);
+}
+
+void				RequestHandler::responseAll(std::string first_str, std::string body){
+	std::stringstream buffer;
+
+	buffer << body;
+	_response->setUpBody(buffer);
+	_response->setUpHeaders(_filePath.substr(_filePath.find_last_of('.') + 1));
+	_response->setServerAnswer(first_str);
 }

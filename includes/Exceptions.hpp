@@ -90,6 +90,34 @@ public:
 			return ("No Such Error");
 		}
 	};
+	class WriteException : public std::exception{
+	public:
+		virtual const char  *what() const throw(){
+			std::cout << std::strerror(errno) << std::endl;
+			return ("WRITE ERROR");
+		}
+	};
+	class ForkException : public std::exception{
+	public:
+		virtual const char  *what() const throw(){
+			std::cout << std::strerror(errno) << std::endl;
+			return ("FORK ERROR");
+		}
+	};
+	class ExecveException : public std::exception{
+	public:
+		virtual const char  *what() const throw(){
+			std::cout << std::strerror(errno) << std::endl;
+			return ("EXECVE ERROR");
+		}
+	};
+	class OpenTmpFileException : public std::exception{
+	public:
+		virtual const char  *what() const throw(){
+			std::cout << std::strerror(errno) << std::endl;
+			return ("OPEN TEMPORARY FILE ERROR");
+		}
+	};
 };
 
 

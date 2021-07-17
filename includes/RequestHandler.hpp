@@ -8,6 +8,10 @@
 # include <regex>
 # include "Server.hpp"
 # include "Response.hpp"
+# include "utils.hpp"
+# include "Cgi.hpp"
+# include <list>
+# include <dirent.h>
 
 class Server;
 class Response;
@@ -32,6 +36,8 @@ private:
 	Response							*_response;
 	std::string							_answer;
 	unsigned long						_bytesToSend;
+
+	std::vector < std::vector <std::string> >	_strsBody;
 
 	int									_flagParsed;
 	int									_badContentSize;
@@ -68,6 +74,14 @@ public:
 	int 				setUpPathFromUrl(size_t lastSlashUrlPos);
 
 	void				testPrint(); //удалить потом
+	//Kate's methods
+	void				responseToPostRequest();
+	void	            cgi_handler();
+	void				responseToPutRequest();
+	void				responseToDeleteRequest();
+	void 				pushBody(std::string strBody);
+	void				autoindex_execution();
+	void				responseAll(std::string first_str, std::string body);
 };
 
 
