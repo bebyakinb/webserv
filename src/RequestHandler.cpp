@@ -325,6 +325,8 @@ void				RequestHandler::prepareResponse(){
 				} else {
 					responseToGetRequest();
 				}
+			} else if (_currentLocation->autoindex == 1) {
+				autoindex_execution();
 			} else if (stat((_filePath + "index.html").c_str(), &buff) != -1) {
 				responseToGetRequest();
 			} else
@@ -454,7 +456,7 @@ void	RequestHandler::cgi_handler()
 	Cgi cgi_obj;
 	cgi_obj.cgi_start(info);
 	//changed
-	responseAll("HTTP/1.1 200 Ok", cgi_obj.getResponseBody());
+	responseAll("HTTP/1.1 200 Ok", cgi_obj.getResponseBody(), _filePath.substr(_filePath.find_last_of('.') + 1));
 }
 
 void	RequestHandler::responseToPostRequest()
@@ -468,7 +470,7 @@ void	RequestHandler::responseToPostRequest()
 			std::ofstream file(filename, std::ios::out | std::ios::in | std::ios::trunc);
 			if (file.is_open())
 			{
-				responseAll("HTTP/1.1 204 No Content", "");
+				responseAll("HTTP/1.1 204 No Content", "", "html");
 				file.close();
 			}
 			else
@@ -480,7 +482,7 @@ void	RequestHandler::responseToPostRequest()
 			if (file.is_open())
 			{
 				file << _body;
-				responseAll("HTTP/1.1 201 Created", _body);
+				responseAll("HTTP/1.1 201 Created", _body, _filePath.substr(_filePath.find_last_of('.') + 1));
 				file.close();
 			}
 		}
@@ -513,7 +515,7 @@ void	RequestHandler::responseToDeleteRequest()
 	}
 	else
 		status_message = "HTTP/1.1 403 Forbidden";
-	responseAll(status_message, "");
+	responseAll(status_message, "", "html");
 }
 
 typedef struct _file
@@ -672,14 +674,14 @@ void	RequestHandler::autoindex_execution()
 	}
 	response = response + "</pre><hr></body>\n"
 						  "</html>";
-	responseAll("HTTP/1.1 200 OK" ,response);
+	responseAll("HTTP/1.1 200 OK" ,response, "html");
 }
 
-void				RequestHandler::responseAll(std::string first_str, std::string body){
+void				RequestHandler::responseAll(std::string first_str, std::string body, const std::string &extension){
 	std::stringstream buffer;
 
 	buffer << body;
 	_response->setUpBody(buffer);
-	_response->setUpHeaders(_filePath.substr(_filePath.find_last_of('.') + 1));
+	_response->setUpHeaders(extension);
 	_response->setServerAnswer(first_str);
 }

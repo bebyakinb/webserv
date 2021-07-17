@@ -77,12 +77,11 @@ public:
 	//Kate's methods
 	void				responseToPostRequest();
 	void	            cgi_handler();
-	void				responseToPutRequest();
+	//void				responseToPutRequest();
 	void				responseToDeleteRequest();
 	void 				pushBody(std::string strBody);
 	void				autoindex_execution();
-	void				responseAll(std::string first_str, std::string body);
+	void				responseAll(std::string first_str, std::string body, const std::string &extension);
+
 };
-
-
 #endif //SERVER_REQUESTHANDLER_HPP
