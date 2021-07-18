@@ -30,8 +30,9 @@ private:
 	std::map<std::string,std::string>	_headers;
 	std::map<int,std::string>			_servAnswer;
 	std::map<int,std::string>			_defaultErrors;
-
+	
 	std::string							_filePath;
+	std::string							_filePathLastPart;
 	struct s_location					*_currentLocation;
 	Response							*_response;
 	std::string							_answer;
@@ -42,9 +43,9 @@ private:
 	int									_flagParsed;
 	int									_badContentSize;
 	int 								_flagChuked;
-	int									_wrongMethods;     // 405
+	int									_wrongMethods;	 // 405
 	int									_wrongHTTPVersion; // 505
-	int									_badRequest;       // 400
+	int									_badRequest;	   // 400
 
 public:
 	RequestHandler(Server *server);
@@ -76,7 +77,7 @@ public:
 	void				testPrint(); //удалить потом
 	//Kate's methods
 	void				responseToPostRequest();
-	void	            cgi_handler();
+	void				cgi_handler();
 	//void				responseToPutRequest();
 	void				responseToDeleteRequest();
 	void 				pushBody(std::string strBody);
