@@ -349,11 +349,13 @@ void				RequestHandler::prepareResponse(){
 			responseToGetRequest();
 		}
 	}  else if (_method == POST && _currentLocation->methods[POST] ) {
-		//в методе post мне нужно, чтобы только url - все после location
+
 		std::string tmp_path;
 		std::string tmp_url;
 		std::string name;
 		std::size_t found;
+		if (_currentLocation->cgi_path.empty())
+            _url = _filePathLastPart;
 		if (_filePath.back() == '/') {
 			found = _filePath.find_last_of('/');
 			tmp_path = _filePath.substr(0, found);
@@ -370,6 +372,7 @@ void				RequestHandler::prepareResponse(){
 			else
 				responseError(ERR404);
 		} else {
+
 			if (_url == "" || _url == "/")
 				responseError(ERR400);
 			if (stat((_currentLocation->root).c_str(), &buff) == -1)
@@ -678,7 +681,7 @@ void	RequestHandler::autoindex_execution()
 	{
 		if ((*it)->if_dir == true) {
 			line = "<a href=\"";
-			line = line + (*it)->name;
+            line = line + _url + (*it)->name;
 			line = line + "\">";
 			line = line + (*it)->name;
 			line = line + "</a>";
@@ -700,7 +703,7 @@ void	RequestHandler::autoindex_execution()
 	{
 		if ((*it)->if_dir == false) {
 			line = "<a href=\"";
-			line = line + (*it)->name;
+			line = line + _url + (*it)->name;
 			line = line + "\">";
 			line = line + (*it)->name;
 			line = line + "</a>";

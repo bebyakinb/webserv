@@ -96,8 +96,8 @@ void Cgi::cgi_usage()
     memset(filename_tmp[0], 0, 100);
     memset(filename_tmp[1], 0, 100);
 
-    strncpy(filename[0], _cgi_info->_filePath.c_str(), _cgi_info->_filePath.size());
-    strncpy(filename[1], _cgi_info->_filePath.c_str(), _cgi_info->_filePath.size());
+    strncpy(filename[0], _cgi_info->_currentLocation->root.c_str(), _cgi_info->_currentLocation->root.size());
+    strncpy(filename[1], _cgi_info->_currentLocation->root.c_str(), _cgi_info->_currentLocation->root.size());
     strncpy(filename_tmp[0], template_for_file.c_str(), template_for_file.size());
     strncpy(filename_tmp[1], template_for_file.c_str(), template_for_file.size());
     strcat(filename[0], filename_tmp[0]);
